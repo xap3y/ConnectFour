@@ -1,5 +1,6 @@
 name: ConnectFour
 version: '${version}'
+api-version: '1.13'
 main: eu.xap3y.connectfour.ConnectFour
 authors: [XAP3Y]
 website: https://xap3y.eu

@@ -19,12 +19,12 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
     private val playingPlayers = ConcurrentHashMap<Player, Player>()
     private val playerColor = hashMapOf<Player, Boolean>()
 
-    private val borderPane = (XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1))
+    private val borderPane = (XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1))
 
-    private val redPane = XMaterial.RED_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)
-    private val yellowPane = XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)
+    private val redPane = XMaterial.RED_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.RED_STAINED_GLASS_PANE, 1)
+    private val yellowPane = XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.YELLOW_STAINED_GLASS_PANE, 1)
     //private val bluePane = XMaterial.BLUE_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)
-    private val greenPane = XMaterial.LIME_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)
+    private val greenPane = XMaterial.LIME_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.LIME_STAINED_GLASS_PANE, 1)
 
     fun isPlaying(player: Player): Boolean {
         return playingPlayers.containsKey(player) || playingPlayers.containsValue(player)
@@ -50,13 +50,13 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
         gui.setSlot(7, GuiButton(borderPane).setName(" "))
         gui.setSlot(52, GuiButton(borderPane).setName(" "))
 
-        val skullPlayer: ItemStack = XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.SKULL_ITEM,1)
+        val skullPlayer: ItemStack = XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.PLAYER_HEAD,1)
         val skullPlayerMeta: SkullMeta = skullPlayer.itemMeta as SkullMeta
         // Using deprecated .setOwner() cuz 1.8.8 doesn't have .setOwningPlayer()
         skullPlayerMeta.setOwner(player.name)
         skullPlayer.itemMeta = skullPlayerMeta
 
-        val skullOpponent: ItemStack = XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.SKULL_ITEM,1)
+        val skullOpponent: ItemStack = XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.PLAYER_HEAD,1)
         val skullOpponentMeta: SkullMeta = skullOpponent.itemMeta as SkullMeta
         skullOpponentMeta.setOwner(opponent.name)
         skullOpponent.itemMeta = skullOpponentMeta
@@ -126,7 +126,7 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
             end = true
             //val winner = event.whoClicked as Player
 
-            Bukkit.getScheduler().runTaskLater(plugin, {
+            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 opponent.closeInventory()
                 player.closeInventory()
             }, 20L * 2 + 10L)

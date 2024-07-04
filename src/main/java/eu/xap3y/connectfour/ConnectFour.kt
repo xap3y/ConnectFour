@@ -6,6 +6,7 @@ import eu.xap3y.xagui.XaGui
 import eu.xap3y.xalib.managers.ConfigManager
 import eu.xap3y.xalib.managers.Texter
 import eu.xap3y.xalib.objects.TexterObj
+import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
 class ConnectFour : JavaPlugin() {
@@ -26,6 +27,13 @@ class ConnectFour : JavaPlugin() {
             false,
             null
         ))
+
+        var nmsver = Bukkit.getServer().javaClass.getPackage().name;
+        nmsver = nmsver.substring(nmsver.lastIndexOf(".") + 1);
+        texter.console("NMS Version: $nmsver")
+        if (nmsver.startsWith("v1_8_") || nmsver.startsWith("v1_7_")) { // Not sure if 1_7 works for the protocol hack?
+            useOld = true
+        }
         //this.server.pluginManager.registerEvents(PlayerJoinListener(), this)
     }
 
@@ -35,5 +43,6 @@ class ConnectFour : JavaPlugin() {
 
     companion object {
         lateinit var instance: ConnectFour
+        var useOld: Boolean = false
     }
 }

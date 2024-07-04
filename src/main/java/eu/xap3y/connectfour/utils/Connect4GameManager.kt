@@ -14,10 +14,12 @@ import org.bukkit.inventory.meta.SkullMeta
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
+private val colorMapper = hashMapOf<Int, Boolean>() // gameId, playerId, slot, isRed
+private val playerMapper = hashMapOf<UUID, PlayerModel>()
+
 class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance) {
 
     private val playingPlayers = ConcurrentHashMap<Player, Player>()
-    private val playerMapper = hashMapOf<UUID, PlayerModel>()
 
     /*private val borderPane = (XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1))
     private val redPane = (XMaterial.RED_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)).apply { itemMeta = itemMeta?.apply { displayName = Texter.colored("&cRed") } }
@@ -40,9 +42,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         playingPlayers[player] = opponent
 
         val randomNum = (0..1).random() // 0 or 1
-
-        playerMapper[player.uniqueId] = PlayerModel(if (randomNum == 0) 0 else 1)
-        playerMapper[opponent.uniqueId] = PlayerModel(if (randomNum == 0) 1 else 0)
+        val isFirstRed: Boolean = randomNum == 0
 
         // Create GUI
         val gui: GuiMenu = plugin.guiManager.createMenu("&bConnect4 &7| &e${player.name} &c- &e${opponent.name}", 6)
@@ -56,28 +56,38 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         gui.fillSlots(gui.getCurrentPageIndex(), border, GuiButton(StaticItems.borderPane).setName(" "))
 
         // Constructing player heads
-        val isFirstRed = randomNum == 0
-        val skullPlayer: ItemStack = (XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.SKULL_ITEM,1)).apply {
+        val skullPlayer: ItemStack = (XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.PLAYER_HEAD,1)).apply {
             val skullPlayerMeta: SkullMeta = itemMeta as SkullMeta
-            skullPlayerMeta.setOwner(player.name)
+            if (ConnectFour.useOld) skullPlayerMeta.setOwner(player.name) else skullPlayerMeta.setOwningPlayer(player)
             itemMeta = skullPlayerMeta
         }
-        gui.setSlot(17, GuiButton(skullPlayer).setName("&9${player.name}").setLore(" ", "&7&l| &7Color: ${if (isFirstRed) "&cRed" else "&eYellow"}"))
-        gui.setSlot(8, GuiButton(if (isFirstRed) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow
 
-        val skullOpponent: ItemStack = (XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.SKULL_ITEM,1)).apply {
+
+        gui.setSlot(17, GuiButton(skullPlayer).setName("&9${player.name}").setLore(" ", "&7&l| &7Color: ${if (isFirstRed) "&cRed" else "&eYellow"}"))
+        val pane = if (isFirstRed) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()
+        gui.setSlot(8, GuiButton(pane).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow
+        //if (isFirstRed) colorMapper[gameId] = Triple(playerMapper[player.uniqueId]?.id ?: 0, 8, true) else colorMapper[gameId] = Triple(playerMapper[player.uniqueId]?.id ?: 0, 8, false)
+
+        val skullOpponent: ItemStack = (XMaterial.PLAYER_HEAD.parseItem() ?: ItemStack(Material.PLAYER_HEAD,1)).apply {
             val skullOpponentMeta: SkullMeta = itemMeta as SkullMeta
-            skullOpponentMeta.setOwner(opponent.name)
+            if (ConnectFour.useOld) skullOpponentMeta.setOwner(opponent.name) else skullOpponentMeta.setOwningPlayer(opponent)
             itemMeta = skullOpponentMeta
         }
         gui.setSlot(44, GuiButton(skullOpponent).setName("&9${opponent.name}").setLore(" ", "&7&l| &7Color: ${if (isFirstRed.not()) "&cRed" else "&eYellow"}"))
         gui.setSlot(53, GuiButton(if (isFirstRed.not()) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow
 
+        playerMapper[player.uniqueId] = PlayerModel(if (randomNum == 0) 0 else 1, isRed = isFirstRed, paneSlot = 8)
+        playerMapper[opponent.uniqueId] = PlayerModel(if (randomNum == 0) 1 else 0, isRed = isFirstRed.not(), paneSlot = 53)
+
         // get starting player
         onMove = (0..1).random()
-        gui.setGlow(onMove, if (isFirstRed) 8 else 53)
-        val playerOnMove = if (playerMapper[player.uniqueId]?.id == onMove) player else opponent
+        gui.setGlow(onMove)
+        val playerOnMove: Player = if (playerMapper[player.uniqueId]?.id == onMove) player else opponent
         gui.switchMove(onMove, playerOnMove.name)
+
+        plugin.texter.console("Player: ${player.name} | Opponent: ${opponent.name}")
+        plugin.texter.console("isFirstRed: $isFirstRed | randomNum: $randomNum | onMove: $onMove")
+        plugin.texter.console("PANE: ${pane.type}")
 
         gui.setOnClose { event ->
             if (event.player.uniqueId == player.uniqueId)
@@ -91,7 +101,8 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         }
 
         gui.setOnClick { event ->
-            if (event.currentItem == null || end) return@setOnClick
+            if (end) return@setOnClick
+            //if (ConnectFour.useOld && event.currentItem == null) return@setOnClick
             val clickedColumn: Int = event.slot % 9
             //event.whoClicked.sendMessage("You clicked on slot $clickedColumn")
             if (clickedColumn > 6) return@setOnClick
@@ -101,17 +112,28 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             val nextPlayer: Player = if (event.whoClicked.uniqueId == player.uniqueId) opponent else player
             onMove = (onMove + 1) % 2
             gui.switchMove(onMove, nextPlayer.name)
-            gui.setGlow(onMove, if (isFirstRed) 8 else 53)
+            gui.setGlow(onMove)
             val button = GuiButton(if (playerNumber == 0) StaticItems.redPane.clone() else StaticItems.yellowPane.clone())
             gui.setSlot(row * 9 + column, button)
-
             val win = checkWin(gameId, playerNumber + 1) ?: return@setOnClick
             end = true
             win.forEach {
                 gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
             }
 
-            Bukkit.getScheduler().runTaskLater(plugin, {
+
+            gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"))
+            val paneSlot = playerMapper[event.whoClicked.uniqueId]?.paneSlot ?: 53
+            if (paneSlot == 8) {
+                gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
+                gui.setSlot(paneSlot+18, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
+            }
+            else {
+                gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
+                gui.setSlot(paneSlot-18, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
+            }
+
+            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
                 gui.close(player)
             }, 20L * 2 + 10L)
         }
@@ -171,7 +193,9 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
 
 data class PlayerModel(
     val id: Int,
-    var moves: Int = 0
+    var moves: Int = 0,
+    var isRed: Boolean,
+    var paneSlot: Int
 )
 
 private val border: Set<Int> = setOf(16, 25, 34, 43)
@@ -185,10 +209,17 @@ fun GuiMenu.switchMove(int: Int, p0: String) {
     }
 }
 
-fun GuiMenu.setGlow(color: Int, slot: Int) {
-    val realSlot = if (slot == 8 && color == 0) 8 else if (slot == 8 && color == 1) 53 else if (slot == 53 && color == 0) 8 else 53
-    val item = if (color == 0) StaticItems.redPaneGlow else StaticItems.yellowPaneGlow
-    val itemToRevert = if (color == 0) StaticItems.yellowPane.clone() else StaticItems.redPane.clone()
-    setSlot(realSlot, item)
-    setSlot(if (realSlot == 8) 53 else 8, itemToRevert)
+fun GuiMenu.setGlow(color: Int) {
+    /*val isRed = colorMapper[gameId] ?: return
+    val item = if (isRed) StaticItems.redPaneGlow else StaticItems.yellowPaneGlow
+    val itemToRevert = if (isRed) StaticItems.yellowPane.clone() else StaticItems.redPane.clone()
+    setSlot(if (color == 0) 8 else 53, item)
+    setSlot(if (color == 0) 53 else 8, itemToRevert)*/
+
+    val nextOnMovePlayer = playerMapper.values.firstOrNull { it.id == color } ?: return
+    val item = if (nextOnMovePlayer.isRed) StaticItems.redPaneGlow else StaticItems.yellowPaneGlow
+    val slot = nextOnMovePlayer.paneSlot
+    val itemToRevert = if (nextOnMovePlayer.isRed) StaticItems.yellowPane.clone() else StaticItems.redPane.clone()
+    setSlot(slot, item.clearLore())
+    setSlot(if (slot == 8) 53 else 8, itemToRevert)
 }
