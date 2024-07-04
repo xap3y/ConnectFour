@@ -1,0 +1,5 @@
+name: ConnectFour
+version: '${version}'
+main: eu.xap3y.connectfour.ConnectFour
+authors: [XAP3Y]
+website: https://xap3y.eu
