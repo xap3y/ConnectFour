@@ -1,6 +1,7 @@
 package eu.xap3y.connectfour.commands
 
 import eu.xap3y.connectfour.ConnectFour
+import io.papermc.paper.command.brigadier.CommandSourceStack
 import org.bukkit.OfflinePlayer
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -9,26 +10,26 @@ import org.incendo.cloud.annotations.Command
 import org.incendo.cloud.annotations.CommandDescription
 import org.incendo.cloud.annotations.Permission
 
-class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
+class PaperRootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
 
     private val onlyPlayer: String = "&cYou must be a player to use this command!"
 
     @Command("connectfour|cf")
     @CommandDescription("Connect Four main command")
-    fun root(sender: CommandSender) {
-        plugin.texter.response(sender, "&fRunning &bConnect4 &fversion &7${plugin.version}")
+    fun root(sender: CommandSourceStack) {
+        plugin.texter.response(sender.sender, "&fRunning &bConnect4 &fversion &7${plugin.version}")
     }
 
     @Command("connectfour|cf stats [player]")
     @CommandDescription("Connect Four stats command")
     @Permission(value = ["connectfour.*", "connectfour.stats"], mode = Permission.Mode.ANY_OF)
     fun stats(
-        sender: CommandSender,
+        sender: CommandSourceStack,
         @Argument("player") player: OfflinePlayer?
     ) {
 
         if (player == null && sender !is Player)
-            return plugin.texter.response(sender, "&cWrong usage! &8(&7/cf stats <player>&8)")
+            return plugin.texter.response(sender.sender, "&cWrong usage! &8(&7/cf stats <player>&8)")
     }
 
     /*@Command("connectfour|cf inviteOld [player]")
@@ -62,12 +63,12 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
     @CommandDescription("Connect Four invite player command")
     //@Permission(value = ["connectfour.*", "connectfour.invite"], mode = Permission.Mode.ANY_OF)
     fun invite(
-        sender: CommandSender,
+        sender: CommandSourceStack,
         @Argument("player") player: Player?
     ) {
 
         if (sender !is Player)
-            return plugin.texter.response(sender, onlyPlayer)
+            return plugin.texter.response(sender.sender, onlyPlayer)
 
         else if (player == null)
             return plugin.texter.response(sender, "&cWrong usage! &8(&7/cf invite <player>&8)")
@@ -88,10 +89,10 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
     @Command("connectfour|cf accept")
     @CommandDescription("Connect Four accept invite command")
     //@Permission(value = ["connectfour.*", "connectfour.accept"], mode = Permission.Mode.ANY_OF)
-    fun accept(sender: CommandSender) {
+    fun accept(sender: CommandSourceStack) {
 
         if (sender !is Player)
-            return plugin.texter.response(sender, onlyPlayer)
+            return plugin.texter.response(sender.sender, onlyPlayer)
 
         else if (!plugin.inviteManager.isInvited(sender))
             return plugin.texter.response(sender, "&cYou don't have any invites!")
@@ -103,11 +104,11 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
 
     @Command("connectfour|cf reject")
     @CommandDescription("Connect Four reject invite command")
-    //@Permission(value = ["connectfour.*", "connectfour.reject"], mode = Permission.Mode.ANY_OF)
-    fun reject(sender: CommandSender) {
+    @Permission(value = ["connectfour.*", "connectfour.reject"], mode = Permission.Mode.ANY_OF)
+    fun reject(sender: CommandSourceStack) {
 
         if (sender !is Player)
-            return plugin.texter.response(sender, onlyPlayer)
+            return plugin.texter.response(sender.sender, onlyPlayer)
 
         else if (!plugin.inviteManager.isInvited(sender))
             return plugin.texter.response(sender, "&cYou don't have any invites!")

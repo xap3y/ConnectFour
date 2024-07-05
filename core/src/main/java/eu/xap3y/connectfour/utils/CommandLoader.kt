@@ -10,14 +10,13 @@ import org.incendo.cloud.bukkit.CloudBukkitCapabilities
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.execution.ExecutionCoordinator.asyncCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
-import org.incendo.cloud.paper.PaperCommandManager
 
 class CommandLoader(private val plugin: ConnectFour) {
 
-    fun register() {
+    fun getParser(): AnnotationParser<CommandSender> {
         val commandManager: BukkitCommandManager<CommandSender> = createCommandManager()
         val annotationParser: AnnotationParser<CommandSender> = createAnnotationParser(commandManager)
-        annotationParser.parse(RootCommand(plugin))
+        return annotationParser
         /*annotationParser.parse(KitCommand(plugin))
         annotationParser.parse(CodesCommand(plugin))
         annotationParser.parse(PackageCommands(plugin))*/

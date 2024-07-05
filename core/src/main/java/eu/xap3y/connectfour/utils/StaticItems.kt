@@ -1,8 +1,6 @@
 package eu.xap3y.connectfour.utils
 
-import com.cryptomorin.xseries.XEnchantment
 import com.cryptomorin.xseries.XMaterial
-import eu.xap3y.connectfour.ConnectFour
 import eu.xap3y.xagui.models.GuiButton
 import eu.xap3y.xalib.managers.Texter
 import org.bukkit.Material

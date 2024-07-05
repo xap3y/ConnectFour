@@ -1,6 +1,8 @@
 package eu.xap3y.connectfour
 
 import com.cryptomorin.xseries.XSound
+import eu.xap3y.connectfour.commands.PaperRootCommand
+import eu.xap3y.connectfour.commands.RootCommand
 import eu.xap3y.connectfour.utils.CommandLoader
 import eu.xap3y.connectfour.utils.Connect4GameManager
 import eu.xap3y.connectfour.utils.InviteManager
@@ -39,6 +41,7 @@ class ConnectFour : JavaPlugin() {
         if (nmsver.startsWith("v1_8_") || nmsver.startsWith("v1_7_")) { // Not sure if 1_7 works for the protocol hack?
             useOld = true
         } else if (nmsver.startsWith("v1_21_") || nmsver.startsWith("v1_22_")) {
+            if (nmsver.startsWith("v1_20_6")) isPaper = true
             try {
                 Class.forName("net.md_5.bungee.api.chat.BaseComponent")
                 useNew = true
@@ -58,6 +61,7 @@ class ConnectFour : JavaPlugin() {
             try {
                 Class.forName("com.destroystokyo.paper.PaperConfig")
                 isPaper = true
+                isNewestPaper = true
             } catch (e: ClassNotFoundException) {
                 isPaper = false
             }
@@ -70,9 +74,19 @@ class ConnectFour : JavaPlugin() {
         }
 
         //texter.console("Using old: $useOld, Using new: $useNew, Using text components: $useTextComponents, isPaper: $isPaper")
-        if (!isPaper)
-            CommandLoader(this).register()
-
+        if (isPaper) {
+            if (isNewestPaper) {
+                val parser = eu.xap3y.connectfour.V1_20_R1.CommandLoader(this)
+                parser.getParser().parse(PaperRootCommand(instance))
+            } else {
+                texter.console("&cThis plugin is currently only supported up to 1.20.6. To use this with version 1.21+ you need to choose other bukkit platform other then PaperSpigot")
+                server.pluginManager.disablePlugin(this)
+                this.isEnabled = false
+                return
+            }
+        } else {
+            eu.xap3y.connectfour.utils.CommandLoader(this).getParser().parse(RootCommand(this))
+        }
         //this.server.pluginManager.registerEvents(PlayerJoinListener(), this)
     }
 
@@ -86,6 +100,7 @@ class ConnectFour : JavaPlugin() {
         var useNew: Boolean = false
         var useTextComponents: Boolean = true
         var isPaper: Boolean = false
+        var isNewestPaper: Boolean = false
     }
 }
 

@@ -4,3 +4,6 @@
 .kotlin/
 libs/
 build/
+core/target/
+V1_20_R1/target/
+*.iml
