@@ -1,7 +1,7 @@
 # MC Connect4 GUI Minigame
 
 Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.eu/docs/). \
-Supports any bukkit platform from 1.8 up to 1.20.6 \
+Supports any bukkit platform from 1.8 up to 1.21 \
  \
 1.21 is only supported on CraftBukkit and Spigot platforms. \
 PaperSpigot 1.21 will be supported soon! Because I have to setup gradle multiproject to support paper 1.21 API
