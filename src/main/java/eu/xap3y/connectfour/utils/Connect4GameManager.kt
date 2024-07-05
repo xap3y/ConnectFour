@@ -1,7 +1,9 @@
 package eu.xap3y.connectfour.utils
 
 import com.cryptomorin.xseries.XMaterial
+import com.cryptomorin.xseries.XSound
 import eu.xap3y.connectfour.ConnectFour
+import eu.xap3y.connectfour.ps
 import eu.xap3y.connectfour.utils.StaticItems.greenPane
 import eu.xap3y.xagui.GuiMenu
 import eu.xap3y.xagui.models.GuiButton
@@ -45,7 +47,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         val isFirstRed: Boolean = randomNum == 0
 
         // Create GUI
-        val gui: GuiMenu = plugin.guiManager.createMenu("&bConnect4 &7| &e${player.name} &c- &e${opponent.name}", 6)
+        val gui: GuiMenu = plugin.guiManager.createMenu("&b&lConnect4 &7| &9${player.name} &c- &9${opponent.name}", 6)
 
         // 2D Array
         gridMapper[gameId] = Array(6) { IntArray(7) { 0 } }
@@ -85,11 +87,23 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         val playerOnMove: Player = if (playerMapper[player.uniqueId]?.id == onMove) player else opponent
         gui.switchMove(onMove, playerOnMove.name)
 
-        plugin.texter.console("Player: ${player.name} | Opponent: ${opponent.name}")
+        /*plugin.texter.console("Player: ${player.name} | Opponent: ${opponent.name}")
         plugin.texter.console("isFirstRed: $isFirstRed | randomNum: $randomNum | onMove: $onMove")
-        plugin.texter.console("PANE: ${pane.type}")
+        plugin.texter.console("PANE: ${pane.type}")*/
 
+        var onOpen = false
+        gui.setOnOpen {
+            if (onOpen) return@setOnOpen
+            onOpen = true
+            player.ps(XSound.BLOCK_CHEST_OPEN)
+            opponent.ps(XSound.BLOCK_CHEST_OPEN)
+        }
+
+        var oneClose = false
         gui.setOnClose { event ->
+            if (oneClose) return@setOnClose
+            oneClose = true
+            //plugin.texter.console("CLOSE TRIGGERED")
             if (event.player.uniqueId == player.uniqueId)
                 gui.close(opponent)
             else
@@ -98,6 +112,13 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             playerMapper.remove(player.uniqueId)
             playerMapper.remove(opponent.uniqueId)
             gridMapper.remove(gameId)
+
+            if (!end) {
+                plugin.texter.response(player, "&cGame has been closed")
+                plugin.texter.response(opponent, "&cGame has been closed")
+                player.ps(XSound.BLOCK_ANVIL_LAND)
+                opponent.ps(XSound.BLOCK_ANVIL_LAND)
+            }
         }
 
         gui.setOnClick { event ->
@@ -115,12 +136,17 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             gui.setGlow(onMove)
             val button = GuiButton(if (playerNumber == 0) StaticItems.redPane.clone() else StaticItems.yellowPane.clone())
             gui.setSlot(row * 9 + column, button)
-            val win = checkWin(gameId, playerNumber + 1) ?: return@setOnClick
+            //val win = checkWin(gameId, playerNumber + 1) ?: return@setOnClick
+            val win = findWinningPatterns(gameId, playerNumber + 1) ?: return@setOnClick
             end = true
-            win.forEach {
-                gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
+            win.forEach { rows ->
+                rows.forEach {
+                    gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
+                }
+                //gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
             }
 
+            (event.whoClicked as Player).ps(XSound.ENTITY_PLAYER_LEVELUP)
 
             gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"))
             val paneSlot = playerMapper[event.whoClicked.uniqueId]?.paneSlot ?: 53
@@ -188,6 +214,41 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             }
         }
         return null
+    }
+
+    fun findWinningPatterns(gameId: Int, player: Int): List<List<Pair<Int, Int>>>? {
+        val directions = listOf(
+            Pair(1, 0),  // horizontal
+            Pair(0, 1),  // vertical
+            Pair(1, 1),  // diagonal /
+            Pair(1, -1)  // diagonal \
+        )
+        val board = gridMapper[gameId] ?: return null
+        val rows = board.size
+        val cols = board[0].size
+        val winningPatterns = mutableListOf<List<Pair<Int, Int>>>()
+
+        for (row in 0 until rows) {
+            for (col in 0 until cols) {
+                if (board[row][col] == player) {
+                    for ((dr, dc) in directions) {
+                        var r = row
+                        var c = col
+                        val pattern = mutableListOf<Pair<Int, Int>>()
+                        while (r in 0 until rows && c in 0 until cols && board[r][c] == player) {
+                            pattern.add(Pair(r, c))
+                            r += dr
+                            c += dc
+                        }
+                        if (pattern.size >= 4) {
+                            winningPatterns.add(pattern)
+                        }
+                    }
+                }
+            }
+        }
+        if (winningPatterns.isEmpty()) return null
+        return winningPatterns
     }
 }
 

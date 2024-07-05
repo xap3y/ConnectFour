@@ -61,7 +61,7 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
     @Command("connectfour|cf invite [player]")
     @CommandDescription("Connect Four invite player command")
     //@Permission(value = ["connectfour.*", "connectfour.invite"], mode = Permission.Mode.ANY_OF)
-    fun inviteNew(
+    fun invite(
         sender: CommandSender,
         @Argument("player") player: Player?
     ) {
@@ -75,13 +75,43 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
         else if (player == sender)
             return plugin.texter.response(sender, "&cYou can't invite yourself!")
 
-        else if (plugin.newGameManager.isPlaying(player))
+        else if (plugin.gameManager.isPlaying(player))
             return plugin.texter.response(sender, "&cThis player is already playing a game!")
 
-        else if (plugin.newGameManager.isPlaying(sender))
+        else if (plugin.gameManager.isPlaying(sender))
             return plugin.texter.response(sender, "&cYou are already playing a game!")
 
-        plugin.newGameManager.startGame(sender, player)
-        // Implement invite logic
+        plugin.inviteManager.invite(sender, player)
+        plugin.texter.response(sender, "&aInvite sent to &7${player.name}!")
+    }
+
+    @Command("connectfour|cf accept")
+    @CommandDescription("Connect Four accept invite command")
+    //@Permission(value = ["connectfour.*", "connectfour.accept"], mode = Permission.Mode.ANY_OF)
+    fun accept(sender: CommandSender) {
+
+        if (sender !is Player)
+            return plugin.texter.response(sender, onlyPlayer)
+
+        else if (!plugin.inviteManager.isInvited(sender))
+            return plugin.texter.response(sender, "&cYou don't have any invites!")
+
+        plugin.inviteManager.accept(sender)
+
+        // Implement accept logic
+    }
+
+    @Command("connectfour|cf reject")
+    @CommandDescription("Connect Four reject invite command")
+    //@Permission(value = ["connectfour.*", "connectfour.reject"], mode = Permission.Mode.ANY_OF)
+    fun reject(sender: CommandSender) {
+
+        if (sender !is Player)
+            return plugin.texter.response(sender, onlyPlayer)
+
+        else if (!plugin.inviteManager.isInvited(sender))
+            return plugin.texter.response(sender, "&cYou don't have any invites!")
+
+        plugin.inviteManager.reject(sender)
     }
 }
