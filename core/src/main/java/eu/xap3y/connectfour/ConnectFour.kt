@@ -3,7 +3,6 @@ package eu.xap3y.connectfour
 import com.cryptomorin.xseries.XSound
 import eu.xap3y.connectfour.commands.PaperRootCommand
 import eu.xap3y.connectfour.commands.RootCommand
-import eu.xap3y.connectfour.utils.CommandLoader
 import eu.xap3y.connectfour.utils.Connect4GameManager
 import eu.xap3y.connectfour.utils.InviteManager
 import eu.xap3y.xagui.XaGui
@@ -61,7 +60,6 @@ class ConnectFour : JavaPlugin() {
             try {
                 Class.forName("com.destroystokyo.paper.PaperConfig")
                 isPaper = true
-                isNewestPaper = true
             } catch (e: ClassNotFoundException) {
                 isPaper = false
             }
@@ -75,15 +73,8 @@ class ConnectFour : JavaPlugin() {
 
         //texter.console("Using old: $useOld, Using new: $useNew, Using text components: $useTextComponents, isPaper: $isPaper")
         if (isPaper) {
-            if (isNewestPaper) {
-                val parser = eu.xap3y.connectfour.V1_20_R1.CommandLoader(this)
-                parser.getParser().parse(PaperRootCommand(instance))
-            } else {
-                texter.console("&cThis plugin is currently only supported up to 1.20.6. To use this with version 1.21+ you need to choose other bukkit platform other then PaperSpigot")
-                server.pluginManager.disablePlugin(this)
-                this.isEnabled = false
-                return
-            }
+            val parser = eu.xap3y.connectfour.V1_20_R1.CommandLoader(this)
+            parser.getParser().parse(PaperRootCommand(instance))
         } else {
             eu.xap3y.connectfour.utils.CommandLoader(this).getParser().parse(RootCommand(this))
         }
@@ -100,7 +91,6 @@ class ConnectFour : JavaPlugin() {
         var useNew: Boolean = false
         var useTextComponents: Boolean = true
         var isPaper: Boolean = false
-        var isNewestPaper: Boolean = false
     }
 }
 
