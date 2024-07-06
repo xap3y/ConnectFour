@@ -13,10 +13,11 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
+import org.bukkit.scheduler.BukkitTask
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 
-private val colorMapper = hashMapOf<Int, Boolean>() // gameId, playerId, slot, isRed
 private val playerMapper = hashMapOf<UUID, PlayerModel>()
 
 class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance) {
@@ -40,6 +41,9 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         var onMove: Int // 0 - player, 1 - opponent | 0 - red, 1 - yellow
         var end = false
         val gameId = (0..99999).random() // Random game ID in range 0-99999
+        var falling = false
+        var fallingTask: BukkitTask? = null
+        var totalMoves = 0
 
         playingPlayers[player] = opponent
 
@@ -104,6 +108,10 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             if (oneClose) return@setOnClose
             oneClose = true
             //plugin.texter.console("CLOSE TRIGGERED")
+            if (fallingTask != null) {
+                fallingTask?.cancel()
+                fallingTask = null
+            }
             if (event.player.uniqueId == player.uniqueId)
                 gui.close(opponent)
             else
@@ -122,46 +130,83 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         }
 
         gui.setOnClick { event ->
-            if (end) return@setOnClick
+            plugin.texter.console("CLICKED")
+            if (end || falling) return@setOnClick
+            plugin.texter.console("PASSED FIRST")
             //if (ConnectFour.useOld && event.currentItem == null) return@setOnClick
             val clickedColumn: Int = event.slot % 9
             //event.whoClicked.sendMessage("You clicked on slot $clickedColumn")
             if (clickedColumn > 6) return@setOnClick
+            plugin.texter.console("SECONDS")
             val playerNumber: Int = playerMapper[event.whoClicked.uniqueId]?.id ?: return@setOnClick
+            plugin.texter.console("THIRD")
             if (onMove != playerNumber) return@setOnClick
+            plugin.texter.console("FOUR")
             val (row: Int, column: Int) = dropToken(gameId, clickedColumn, playerNumber + 1) ?: return@setOnClick
-            val nextPlayer: Player = if (event.whoClicked.uniqueId == player.uniqueId) opponent else player
-            onMove = (onMove + 1) % 2
-            gui.switchMove(onMove, nextPlayer.name)
-            gui.setGlow(onMove)
-            val button = GuiButton(if (playerNumber == 0) StaticItems.redPane.clone() else StaticItems.yellowPane.clone())
-            gui.setSlot(row * 9 + column, button)
-            //val win = checkWin(gameId, playerNumber + 1) ?: return@setOnClick
-            val win = findWinningPatterns(gameId, playerNumber + 1) ?: return@setOnClick
-            end = true
-            win.forEach { rows ->
-                rows.forEach {
-                    gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
+            plugin.texter.console("DROP TOKEN NOT RETURNED NULL")
+            totalMoves++
+            player.ps(XSound.BLOCK_NOTE_BLOCK_HARP)
+            opponent.ps(XSound.BLOCK_NOTE_BLOCK_HARP)
+
+            // Fall animation
+            falling = true
+            val button: ItemStack = if (playerNumber == 0) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()
+
+            fallingTask = Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                for (r in 0 until row+1) {
+                    //plugin.texter.console("Row: $r")
+                    val newSlot = r * 9 + column
+                    val oldSlot = (r - 1) * 9 + column
+                    //plugin.texter.console("NEW: $newSlot | OLD: $oldSlot")
+                    if (oldSlot > 0) gui.updateSlot(oldSlot, Material.AIR)
+                    else gui.updateSlot(0 + column, Material.AIR)
+                    gui.setSlot(newSlot, button)
+                    /*gui.inventory.setItem(newSlot, button)*/
+                    Thread.sleep(120L)
                 }
-                //gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
-            }
+                falling = false
 
-            (event.whoClicked as Player).ps(XSound.ENTITY_PLAYER_LEVELUP)
+                //gui.setSlot(row * 9 + column, button)
 
-            gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"))
-            val paneSlot = playerMapper[event.whoClicked.uniqueId]?.paneSlot ?: 53
-            if (paneSlot == 8) {
-                gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
-                gui.setSlot(paneSlot+18, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
-            }
-            else {
-                gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
-                gui.setSlot(paneSlot-18, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
-            }
+                val nextPlayer: Player = if (event.whoClicked.uniqueId == player.uniqueId) opponent else player
+                onMove = (onMove + 1) % 2
+                //gui.setSlot(row * 9 + column, button)
+                //val win = checkWin(gameId, playerNumber + 1) ?: return@setOnClick
+                val win = findWinningPatterns(gameId, playerNumber + 1)
+                if (totalMoves < 42 && win == null) {
+                    gui.switchMove(onMove, nextPlayer.name)
+                    gui.setGlow(onMove)
+                    return@Runnable
+                }
+                else if (totalMoves > 41 && win == null) {
+                    end = true
+                    gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.orangePane.clone()).setName("&6&lDRAW"))
+                } else if (win != null) {
+                    end = true
+                    win.forEach { rows ->
+                        rows.forEach {
+                            gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
+                        }
+                        //gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
+                    }
 
-            Bukkit.getScheduler().runTaskLater(plugin, Runnable {
-                gui.close(player)
-            }, 20L * 2 + 10L)
+                    (event.whoClicked as Player).ps(XSound.ENTITY_PLAYER_LEVELUP)
+
+                    gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"))
+                    val paneSlot = playerMapper[event.whoClicked.uniqueId]?.paneSlot ?: 53
+                    if (paneSlot == 8) {
+                        gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
+                        gui.setSlot(paneSlot+18, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
+                    }
+                    else {
+                        gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
+                        gui.setSlot(paneSlot-18, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
+                    }
+                }
+                Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+                    gui.close(player)
+                }, 20L * 2 + 10L)
+            })
         }
 
         // AND FINALLY OPEN THE GUI OMG

@@ -15,7 +15,7 @@ object StaticItems {
     val yellowPane = (XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.YELLOW_STAINED_GLASS_PANE, 1)).apply { itemMeta = itemMeta?.apply { setDisplayName(Texter.colored("&eYellow")) } }
     //private val bluePane = XMaterial.BLUE_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)
     val greenPane = XMaterial.LIME_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.LIME_STAINED_GLASS_PANE, 1)
-
+    val orangePane = XMaterial.ORANGE_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.ORANGE_STAINED_GLASS_PANE, 1)
     val redPaneGlow = GuiButton(redPane.clone().apply { itemMeta = itemMeta?.apply {
         addItemFlags(ItemFlag.HIDE_ENCHANTS)
         //if (!ConnectFour.useOld) try { addEnchant(Enchantment.MENDING, 1, true) } catch (_: Exception) { } // 1.8 doesn't support MENDING
