@@ -51,7 +51,7 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
         if (stats == null)
             return plugin.texter.response(sender, "&cNo stats found for this player!")
 
-        val winRate = (if (stats.gamesPlayed == 0) 0.0 else (stats.wins.toDouble() / stats.gamesPlayed.toDouble()) * 100).toInt()
+        val winRate = (if (stats.gamesPlayed == 0) 0.0 else stats.wins.toDouble() / stats.gamesPlayed.toDouble() * 100).toInt()
 
         val list = if (sender !is Player) listOf(
             "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-",
@@ -216,7 +216,7 @@ class RootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
         plugin.texter.response(sender, header, TextModifier(false))
         list.onEachIndexed { index, it ->
             val symbol = setOfSymbols.elementAt(index)
-            val winRate = (if (it.gamesPlayed == 0) 0.0 else (it.wins.toDouble() / it.gamesPlayed.toDouble()) * 100).toInt()
+            val winRate = (if (it.gamesPlayed == 0) 0.0 else it.wins.toDouble() / it.gamesPlayed.toDouble() * 100).toInt()
             val winRateTextColored = when {
                 winRate >= 70 -> "&a$winRate%"
                 winRate >= 50 -> "&e$winRate%"

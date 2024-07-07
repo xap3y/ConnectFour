@@ -262,7 +262,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         for (row: Int in 0..5) {
             for (col in 0..3) {
                 if ((0..3).all { grid[row][col + it] == player }) {
-                    return (0..3).map { row to (col + it) }
+                    return (0..3).map { row to col + it }
                 }
             }
         }
@@ -270,7 +270,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         for (col: Int in 0..6) {
             for (row: Int in 0..2) {
                 if ((0..3).all { grid[row + it][col] == player }) {
-                    return (0..3).map { (row + it) to col }
+                    return (0..3).map { row + it to col }
                 }
             }
         }
@@ -278,7 +278,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         for (row: Int in 0..2) {
             for (col: Int in 0..3) {
                 if ((0..3).all { grid[row + it][col + it] == player }) {
-                    return (0..3).map { (row + it) to (col + it) }
+                    return (0..3).map { row + it to col + it }
                 }
             }
         }
@@ -286,7 +286,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         for (row: Int in 3..5) {
             for (col: Int in 0..3) {
                 if ((0..3).all { grid[row - it][col + it] == player }) {
-                    return (0..3).map { (row - it) to (col + it) }
+                    return (0..3).map { row - it to col + it }
                 }
             }
         }

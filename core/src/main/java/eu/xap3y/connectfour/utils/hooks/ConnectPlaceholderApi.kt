@@ -21,7 +21,7 @@ class ConnectPlaceholderApi(private val plugin: ConnectFour): PlaceholderExpansi
             "played" -> (plugin.configLoader.data[player?.uniqueId.toString()]?.gamesPlayed ?: 0).toString()
             "winrate" -> run {
                 val stats = plugin.configLoader.getPlayerStats(player ?: return "0") ?: return "0"
-                val winRate = if (stats.gamesPlayed == 0) 0.0 else (stats.wins.toDouble() / stats.gamesPlayed.toDouble()) * 100
+                val winRate = if (stats.gamesPlayed == 0) 0.0 else stats.wins.toDouble() / stats.gamesPlayed.toDouble() * 100
                 return winRate.toInt().toString()
             }
             else -> null

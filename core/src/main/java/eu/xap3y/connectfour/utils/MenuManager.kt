@@ -19,7 +19,7 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
     private val playingPlayers = ConcurrentHashMap<Player, Player>()
     private val playerColor = hashMapOf<Player, Boolean>()
 
-    private val borderPane = (XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1))
+    private val borderPane = XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1)
 
     private val redPane = XMaterial.RED_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.RED_STAINED_GLASS_PANE, 1)
     private val yellowPane = XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.YELLOW_STAINED_GLASS_PANE, 1)
