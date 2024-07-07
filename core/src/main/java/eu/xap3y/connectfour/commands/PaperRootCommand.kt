@@ -52,7 +52,7 @@ class PaperRootCommand(private val plugin: ConnectFour = ConnectFour.instance) {
         if (stats == null)
             return plugin.texter.response(sender.sender, "&cNo stats found for this player!")
 
-        val winRate = (if (stats.gamesPlayed == 0) 0.0 else (stats.wins.toDouble() / stats.gamesPlayed.toDouble()) * 100).toInt()
+        val winRate = (if (stats.gamesPlayed == 0) 0.0 else stats.wins.toDouble() / stats.gamesPlayed.toDouble() * 100).toInt()
 
         val list = if (sender !is Player) listOf(
             "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-",
