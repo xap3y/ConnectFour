@@ -40,7 +40,7 @@ class CommandLoader(private val plugin: ConnectFour) {
             commandManager.registerBrigadier()
             commandManager.brigadierManager().setNativeNumberSuggestions(false)
         }
-        if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+        if (ConnectFour.isPaper.not() && commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             commandManager.registerAsynchronousCompletions()
         }
 

@@ -50,8 +50,11 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         val randomNum = (0..1).random() // 0 or 1
         val isFirstRed: Boolean = randomNum == 0
 
+        plugin.configLoader.checkPlayer(player)
+        plugin.configLoader.checkPlayer(opponent)
+
         // Create GUI
-        val gui: GuiMenu = plugin.guiManager.createMenu("&b&lConnect4 &7| &9${player.name} &c- &9${opponent.name}", 6)
+        val gui: GuiMenu = plugin.guiManager.createMenu("&6&lConnectFour", 6)
 
         // 2D Array
         gridMapper[gameId] = Array(6) { IntArray(7) { 0 } }
@@ -86,7 +89,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         playerMapper[opponent.uniqueId] = PlayerModel(if (randomNum == 0) 1 else 0, isRed = isFirstRed.not(), paneSlot = 53)
 
         // get starting player
-        onMove = (0..1).random()
+        onMove = if (plugin.configModel.inviterStart.not()) (0..1).random() else playerMapper[player.uniqueId]?.id ?: 0
         gui.setGlow(onMove)
         val playerOnMove: Player = if (playerMapper[player.uniqueId]?.id == onMove) player else opponent
         gui.switchMove(onMove, playerOnMove.name)
@@ -101,12 +104,15 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             onOpen = true
             player.ps(XSound.BLOCK_CHEST_OPEN)
             opponent.ps(XSound.BLOCK_CHEST_OPEN)
+            plugin.totalGames++
         }
 
         var oneClose = false
         gui.setOnClose { event ->
             if (oneClose) return@setOnClose
             oneClose = true
+            plugin.openedGuis.remove(player)
+            plugin.openedGuis.remove(opponent)
             //plugin.texter.console("CLOSE TRIGGERED")
             if (fallingTask != null) {
                 fallingTask?.cancel()
@@ -130,43 +136,39 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         }
 
         gui.setOnClick { event ->
-            plugin.texter.console("CLICKED")
             if (end || falling) return@setOnClick
-            plugin.texter.console("PASSED FIRST")
             //if (ConnectFour.useOld && event.currentItem == null) return@setOnClick
             val clickedColumn: Int = event.slot % 9
             //event.whoClicked.sendMessage("You clicked on slot $clickedColumn")
             if (clickedColumn > 6) return@setOnClick
-            plugin.texter.console("SECONDS")
             val playerNumber: Int = playerMapper[event.whoClicked.uniqueId]?.id ?: return@setOnClick
-            plugin.texter.console("THIRD")
             if (onMove != playerNumber) return@setOnClick
-            plugin.texter.console("FOUR")
             val (row: Int, column: Int) = dropToken(gameId, clickedColumn, playerNumber + 1) ?: return@setOnClick
-            plugin.texter.console("DROP TOKEN NOT RETURNED NULL")
             totalMoves++
             player.ps(XSound.BLOCK_NOTE_BLOCK_HARP)
             opponent.ps(XSound.BLOCK_NOTE_BLOCK_HARP)
 
             // Fall animation
-            falling = true
             val button: ItemStack = if (playerNumber == 0) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()
 
-            fallingTask = Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                for (r in 0 until row+1) {
-                    //plugin.texter.console("Row: $r")
-                    val newSlot = r * 9 + column
-                    val oldSlot = (r - 1) * 9 + column
-                    //plugin.texter.console("NEW: $newSlot | OLD: $oldSlot")
-                    if (oldSlot > 0) gui.updateSlot(oldSlot, Material.AIR)
-                    else gui.updateSlot(0 + column, Material.AIR)
-                    gui.setSlot(newSlot, button)
-                    /*gui.inventory.setItem(newSlot, button)*/
-                    Thread.sleep(120L)
-                }
-                falling = false
 
-                //gui.setSlot(row * 9 + column, button)
+            fallingTask = Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                if (plugin.configModel.tokenFallAnimation) {
+                    falling = true
+                    for (r in 0 until row+1) {
+                        //plugin.texter.console("Row: $r")
+                        val newSlot = r * 9 + column
+                        val oldSlot = (r - 1) * 9 + column
+                        //plugin.texter.console("NEW: $newSlot | OLD: $oldSlot")
+                        if (oldSlot > 0) gui.updateSlot(oldSlot, Material.AIR)
+                        else gui.updateSlot(0 + column, Material.AIR)
+                        gui.setSlot(newSlot, button)
+                        /*gui.inventory.setItem(newSlot, button)*/
+                        Thread.sleep(plugin.configModel.tokenFallSpeed)
+                    }
+                    falling = false
+                } else
+                    gui.setSlot(row * 9 + column, button)
 
                 val nextPlayer: Player = if (event.whoClicked.uniqueId == player.uniqueId) opponent else player
                 onMove = (onMove + 1) % 2
@@ -181,6 +183,15 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
                 else if (totalMoves > 41 && win == null) {
                     end = true
                     gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.orangePane.clone()).setName("&6&lDRAW"))
+                    plugin.configLoader.data[player.uniqueId.toString()]?.let {
+                        it.gamesPlayed++
+                        it.draws++
+                    }
+                    plugin.configLoader.data[opponent.uniqueId.toString()]?.let {
+                        it.gamesPlayed++
+                        it.draws++
+                    }
+                    plugin.configLoader.saveData()
                 } else if (win != null) {
                     end = true
                     win.forEach { rows ->
@@ -191,6 +202,25 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
                     }
 
                     (event.whoClicked as Player).ps(XSound.ENTITY_PLAYER_LEVELUP)
+
+                    plugin.configLoader.data[event.whoClicked.uniqueId.toString()]?.let {
+                        it.gamesPlayed++
+                        it.wins++
+                    }
+
+                    plugin.configLoader.data[nextPlayer.uniqueId.toString()]?.let {
+                        it.gamesPlayed++
+                        it.losses++
+                    }
+                    plugin.configLoader.saveData()
+
+                    if (plugin.configModel.winRewardsEnable) {
+                        Bukkit.getScheduler().runTask(plugin, Runnable {
+                            plugin.configModel.winRewards?.forEach { command ->
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", event.whoClicked.name))
+                            }
+                        })
+                    }
 
                     gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"))
                     val paneSlot = playerMapper[event.whoClicked.uniqueId]?.paneSlot ?: 53
@@ -209,7 +239,9 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             })
         }
 
-        // AND FINALLY OPEN THE GUI OMG
+        // AND FINALLY OPEN THE GUI
+        plugin.openedGuis.add(player)
+        plugin.openedGuis.add(opponent)
         gui.open(player)
         gui.open(opponent)
     }

@@ -1,4 +1,31 @@
-
+# Prefix for chat messages by this plugin
 prefix: "&7[&6ConnectFour&7] &r"
 
-timeout: 60
+hooks:
+    # Should the plugin hook into PlaceholderAPI?
+    # If set to true, and PlaceholderAPI is not installed, the plugin will still work
+    placeholderAPI: true
+
+    miniPlaceholders: false
+
+# Timeout in seconds for invites
+# Invite will expire in x seconds
+inviteTimeout: 60
+
+# Should the plugin use the token fall animation?
+# If set to false, the token will be placed instantly
+tokenFallAnimation: true
+
+# Token falling speed in milliseconds
+# The lower the value, the faster the token will fall
+tokenFallSpeed: 100 # ms per row
+
+# Should the player who is inviting always start first?
+inviterStarts: false
+
+# Winning rewards:
+winRewards:
+    enabled: false
+    commands:
+        - "eco give %player% 1000"
+        - "give %player% diamond 1"
