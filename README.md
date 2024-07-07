@@ -58,7 +58,7 @@ The configuration is explained in the file itself.
 
 ## Support me
 
-[![Ko-Fi]](https://ko-fi.com/encryptsl)
+[![Ko-Fi]](https://ko-fi.com/xap3y)
 
 </div>
 
@@ -68,3 +68,11 @@ The configuration is explained in the file itself.
 3. Copy the jar from `core/target/` into your plugins folder
 
 [Ko-Fi]: https://storage.ko-fi.com/cdn/brandasset/kofi_s_tag_white.png
+
+### Contributing
+
+1. Fork this repository
+2. Create a new branch for your changes: git checkout -b my-feature
+3. Commit your changes: git commit -am "Add my feature"
+4. Push the branch: git push origin my-feature
+5. Open a pull request

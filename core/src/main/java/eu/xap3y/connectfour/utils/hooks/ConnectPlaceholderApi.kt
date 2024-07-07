@@ -14,7 +14,7 @@ class ConnectPlaceholderApi(private val plugin: ConnectFour): PlaceholderExpansi
 
     override fun onRequest(player: OfflinePlayer?, params: String): String? {
         return when (params) {
-            "version" -> "1.0.0"
+            "version" -> ConnectFour.VERSION
             "wins" -> (plugin.configLoader.data[player?.uniqueId.toString()]?.wins ?: 0).toString()
             "losses" -> (plugin.configLoader.data[player?.uniqueId.toString()]?.losses ?: 0).toString()
             "draws" -> (plugin.configLoader.data[player?.uniqueId.toString()]?.draws ?: 0).toString()

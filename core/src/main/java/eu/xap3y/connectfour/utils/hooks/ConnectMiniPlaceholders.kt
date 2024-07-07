@@ -11,7 +11,7 @@ class ConnectMiniPlaceholders(private val plugin: ConnectFour) {
     fun register() {
         val expansion = expansion("connectfour") {
             audiencePlaceholder("version") { p, _, _ ->
-                return@audiencePlaceholder Component.text(plugin.version).asInsertingTag()
+                return@audiencePlaceholder Component.text(ConnectFour.VERSION).asInsertingTag()
             }
             audiencePlaceholder("wins") { p, _, _ ->
                 val player = p as Player

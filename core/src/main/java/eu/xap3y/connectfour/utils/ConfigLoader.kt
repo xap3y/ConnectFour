@@ -37,7 +37,9 @@ class ConfigLoader(private val plugin: ConnectFour) {
             plugin.config.getBoolean("winRewards.enabled", false),
             plugin.config.getStringList("winRewards.commands"),
             plugin.config.getBoolean("hooks.placeholderAPI", true),
-            plugin.config.getBoolean("hooks.miniPlaceholders", false)
+            plugin.config.getBoolean("hooks.miniPlaceholders", false),
+            plugin.config.getBoolean("metrics", true),
+            updates = plugin.config.getBoolean("updateCheck", true)
         )
     }
 

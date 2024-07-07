@@ -1,12 +1,18 @@
 # Prefix for chat messages by this plugin
 prefix: "&7[&6ConnectFour&7] &r"
 
+# Should the plugin check for updates?
+updateCheck: true
+
 hooks:
     # Should the plugin hook into PlaceholderAPI?
     # If set to true, and PlaceholderAPI is not installed, the plugin will still work
     placeholderAPI: true
 
     miniPlaceholders: false
+
+# Send bstats metrics
+metrics: true
 
 # Timeout in seconds for invites
 # Invite will expire in x seconds

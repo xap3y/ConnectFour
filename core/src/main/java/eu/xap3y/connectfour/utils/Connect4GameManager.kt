@@ -104,7 +104,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             onOpen = true
             player.ps(XSound.BLOCK_CHEST_OPEN)
             opponent.ps(XSound.BLOCK_CHEST_OPEN)
-            plugin.totalGames++
+            ConnectFour.totalGames++
         }
 
         var oneClose = false
@@ -257,7 +257,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         return null
     }
 
-    private fun checkWin(gameId: Int, player: Int): List<Pair<Int, Int>>? {
+    /*private fun checkWin(gameId: Int, player: Int): List<Pair<Int, Int>>? {
         val grid: Array<IntArray> = gridMapper[gameId] ?: return null
         for (row: Int in 0..5) {
             for (col in 0..3) {
@@ -291,9 +291,9 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             }
         }
         return null
-    }
+    }*/
 
-    fun findWinningPatterns(gameId: Int, player: Int): List<List<Pair<Int, Int>>>? {
+    private fun findWinningPatterns(gameId: Int, player: Int): List<List<Pair<Int, Int>>>? {
         val directions = listOf(
             Pair(1, 0),  // horizontal
             Pair(0, 1),  // vertical

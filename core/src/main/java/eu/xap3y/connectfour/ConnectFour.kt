@@ -10,6 +10,7 @@ import eu.xap3y.connectfour.models.ConfigModel
 import eu.xap3y.connectfour.utils.ConfigLoader
 import eu.xap3y.connectfour.utils.Connect4GameManager
 import eu.xap3y.connectfour.utils.InviteManager
+import eu.xap3y.connectfour.utils.RequestHttp
 import eu.xap3y.connectfour.utils.hooks.HookManager
 import eu.xap3y.xagui.XaGui
 import eu.xap3y.xalib.managers.ConfigManager
@@ -19,13 +20,13 @@ import org.bstats.charts.SingleLineChart
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import java.net.InetAddress
 
 class ConnectFour : JavaPlugin() {
 
     val guiManager by lazy { XaGui(this) }
 
     lateinit var texter: Texter
-    val version: String = "1.0.0"
     /*val gameManager by lazy { MenuManager(this) }*/
     val gameManager by lazy { Connect4GameManager(this) }
     val inviteManager by lazy { InviteManager(this) }
@@ -34,7 +35,6 @@ class ConnectFour : JavaPlugin() {
     val configManager by lazy { ConfigManager(this) }
     val configLoader by lazy { ConfigLoader(this) }
     var openedGuis: MutableSet<Player> = mutableSetOf()
-    var totalGames = 0
 
     override fun onEnable() {
         instance = this
@@ -56,8 +56,23 @@ class ConnectFour : JavaPlugin() {
 
         HookManager(this).hook()
 
-        val metrics = Metrics(this, 22557)
-        metrics.addCustomChart(SingleLineChart("totalGames") { totalGames })
+        if (configModel.metrics) {
+            val metrics = Metrics(this, 22557)
+            metrics.addCustomChart(SingleLineChart("totalGames") { totalGames })
+        }
+
+        if (configModel.updates) {
+            RequestHttp.isNewest().whenComplete { it, e ->
+                if ((it.second == null && it.first.not()) || e != null) {
+                    texter.console("&cFailed to check for updates")
+                    return@whenComplete
+                }
+                else if (it.first.not() && it.second != null) {
+                    texter.console("&eThere is a new version available! &7(&4$VERSION &9-> &2${it.second}&7)")
+                    texter.console("&fPlease download newest version from &bhttps://github.com/xap3y/ConnectFour/releases")
+                }
+            }
+        }
     }
 
     override fun onDisable() {
@@ -73,6 +88,9 @@ class ConnectFour : JavaPlugin() {
         var useNew: Boolean = false
         var useTextComponents: Boolean = true
         var isPaper: Boolean = false
+        const val VERSION_UPSTREAM_URL = "https://raw.githubusercontent.com/xap3y/ConnectFour/main/VER"
+        var totalGames = 0
+        const val VERSION: String = "1.0.0"
     }
 }
 

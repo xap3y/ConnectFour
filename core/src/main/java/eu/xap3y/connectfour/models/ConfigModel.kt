@@ -8,5 +8,7 @@ data class ConfigModel(
     val winRewardsEnable: Boolean,
     val winRewards: List<String>? = null,
     val hookPapi: Boolean,
-    val hookMiniPlaceholders: Boolean
+    val hookMiniPlaceholders: Boolean,
+    val metrics: Boolean,
+    val updates: Boolean
 )

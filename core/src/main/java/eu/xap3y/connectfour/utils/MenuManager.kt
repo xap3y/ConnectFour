@@ -155,7 +155,7 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
         for (row in 0..5) {
             for (col in 0..3) {
                 if ((0..3).all { grid[row][col + it] == player }) {
-                    return (0..3).map { row to (col + it) }
+                    return (0..3).map { row to col + it }
                 }
             }
         }
@@ -163,7 +163,7 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
         for (col in 0..6) {
             for (row in 0..2) {
                 if ((0..3).all { grid[row + it][col] == player }) {
-                    return (0..3).map { (row + it) to col }
+                    return (0..3).map { row + it to col }
                 }
             }
         }
@@ -171,7 +171,7 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
         for (row in 0..2) {
             for (col in 0..3) {
                 if ((0..3).all { grid[row + it][col + it] == player }) {
-                    return (0..3).map { (row + it) to (col + it) }
+                    return (0..3).map { row + it to col + it }
                 }
             }
         }
@@ -179,7 +179,7 @@ class MenuManager(private val plugin: ConnectFour = ConnectFour.instance) {
         for (row in 3..5) {
             for (col in 0..3) {
                 if ((0..3).all { grid[row - it][col + it] == player }) {
-                    return (0..3).map { (row - it) to (col + it) }
+                    return (0..3).map { row - it to col + it }
                 }
             }
         }
