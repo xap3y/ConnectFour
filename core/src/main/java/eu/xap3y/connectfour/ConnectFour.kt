@@ -41,8 +41,8 @@ class ConnectFour : JavaPlugin() {
         configLoader.reload()
         configLoader.loadData()
 
-        // MNS So the plugin is compatible with 1.8.8 - 1.21
-        mns()
+        // NMS So the plugin is compatible with 1.8.8 - 1.21
+        nms()
 
         // This command parser is horrible, it needs to be rewritten. OR maybe I shouldn't use org.incendo.cloud framework but native Bukkit API
         // Because 1.20.6+ API uses CommandSourceStack instead of CommandSender
@@ -100,7 +100,7 @@ fun Player.ps(sound: XSound, vol: Float = 1.0f, pitch: Float = 1.0f) {
     //this.playSound(this.location, sound.parseSound() ?: return, vol, pitch)
 }
 
-fun mns() {
+fun nms() {
     var nmsver = Bukkit.getServer().javaClass.getPackage().name;
     //ConnectFour.instance.texter.console("NMS Version: $nmsver")
     nmsver = nmsver.substring(nmsver.lastIndexOf(".") + 1);

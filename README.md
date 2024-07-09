@@ -5,6 +5,12 @@
 Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.eu/docs/). \
 Supports any bukkit platform from 1.8 up to 1.21
 
+
+[![bStats Servers](https://img.shields.io/bstats/servers/22557)](https://bstats.org/plugin/bukkit/ConnectFour/22557)
+[![CodeFactor](https://www.codefactor.io/repository/github/xap3y/connectfour/badge)](https://www.codefactor.io/repository/github/xap3y/connectfour) \
+![Spiget Downloads](https://img.shields.io/spiget/downloads/117864)
+[![Test build maven](https://github.com/xap3y/ConnectFour/actions/workflows/maven-publish.yml/badge.svg)](https://github.com/xap3y/ConnectFour/actions/workflows/maven-publish.yml)
+
 ## Showcase
 
 <img src="https://xap3y.eu/static/con4.png">
@@ -17,7 +23,7 @@ Supports any bukkit platform from 1.8 up to 1.21
 - 1.8.8-1.21 CraftBukkit (without clickable chat messages)
 - 1.8.8-1.21 PaperSpigot
 - 1.16.5-1.21 Purpur
-- 
+
 <details>
 <summary>Tested on</summary>
 
