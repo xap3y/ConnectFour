@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack
 
 object StaticItems {
 
-    val borderPane = (XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1))
+    val borderPane = XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.BLACK_STAINED_GLASS_PANE, 1)
     val redPane = (XMaterial.RED_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.RED_STAINED_GLASS, 1)).apply { itemMeta = itemMeta?.apply { setDisplayName(Texter.colored("&cRed")) } }
     val yellowPane = (XMaterial.YELLOW_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.YELLOW_STAINED_GLASS_PANE, 1)).apply { itemMeta = itemMeta?.apply { setDisplayName(Texter.colored("&eYellow")) } }
     //private val bluePane = XMaterial.BLUE_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)
