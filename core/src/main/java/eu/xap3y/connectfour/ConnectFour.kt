@@ -7,10 +7,7 @@ import eu.xap3y.connectfour.ConnectFour.Companion.useOld
 import eu.xap3y.connectfour.ConnectFour.Companion.useTextComponents
 import eu.xap3y.connectfour.commands.RootCommand
 import eu.xap3y.connectfour.models.ConfigModel
-import eu.xap3y.connectfour.utils.ConfigLoader
-import eu.xap3y.connectfour.utils.Connect4GameManager
-import eu.xap3y.connectfour.utils.InviteManager
-import eu.xap3y.connectfour.utils.RequestHttp
+import eu.xap3y.connectfour.utils.*
 import eu.xap3y.connectfour.utils.hooks.HookManager
 import eu.xap3y.xagui.XaGui
 import eu.xap3y.xalib.managers.ConfigManager
@@ -20,7 +17,6 @@ import org.bstats.charts.SingleLineChart
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import java.net.InetAddress
 
 class ConnectFour : JavaPlugin() {
 
@@ -73,6 +69,8 @@ class ConnectFour : JavaPlugin() {
                 }
             }
         }
+
+        LangManager.reload()
     }
 
     override fun onDisable() {
@@ -90,7 +88,8 @@ class ConnectFour : JavaPlugin() {
         var isPaper: Boolean = false
         const val VERSION_UPSTREAM_URL = "https://raw.githubusercontent.com/xap3y/ConnectFour/main/VER"
         var totalGames = 0
-        const val VERSION: String = "1.0.0"
+        const val VERSION: String = "1.1.0"
+        var language = "en";
     }
 }
 

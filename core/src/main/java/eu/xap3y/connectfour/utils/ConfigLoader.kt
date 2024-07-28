@@ -21,6 +21,8 @@ class ConfigLoader(private val plugin: ConnectFour) {
     fun reload(){
         plugin.configManager.reloadConfig()
         plugin.prefix = plugin.config.getString("prefix", "&8[&6ConnectFour&8] &7") ?: "&8[&6ConnectFour&8] &7"
+        LangManager.prefix = plugin.prefix
+        ConnectFour.language = plugin.config.getString("lang", "en") ?: "en"
         plugin.texter = Texter(
             TexterObj(
                 plugin.prefix,
@@ -86,7 +88,7 @@ class ConfigLoader(private val plugin: ConnectFour) {
     }
 
     fun getLeaderboard(): List<PlayerStatModel> {
-        return data.values.sortedByDescending { it.wins }.take(10)
+        return data.values.sortedByDescending { it.wins }.take(LangManager.getInt("leaderboard.entries", 10))
 
     }
 }

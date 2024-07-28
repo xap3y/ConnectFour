@@ -7,6 +7,7 @@ import eu.xap3y.connectfour.ps
 import eu.xap3y.connectfour.utils.StaticItems.greenPane
 import eu.xap3y.xagui.GuiMenu
 import eu.xap3y.xagui.models.GuiButton
+import eu.xap3y.xalib.objects.TextModifier
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -15,7 +16,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.scheduler.BukkitTask
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 
 private val playerMapper = hashMapOf<UUID, PlayerModel>()
@@ -54,7 +54,10 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         plugin.configLoader.checkPlayer(opponent)
 
         // Create GUI
-        val gui: GuiMenu = plugin.guiManager.createMenu("&6&lConnectFour", 6)
+        val gui: GuiMenu = plugin.guiManager.createMenu(LangManager.getString("gui.title") ?: "&6&lConnectFour", 6)
+
+        val yellowName: String = LangManager.getString("gui.yellow") ?: "&eYellow"
+        val redName: String = LangManager.getString("gui.red") ?: "&cRed"
 
         // 2D Array
         gridMapper[gameId] = Array(6) { IntArray(7) { 0 } }
@@ -72,7 +75,10 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
         }
 
 
-        gui.setSlot(17, GuiButton(skullPlayer).setName("&9${player.name}").setLore(" ", "&7&l| &7Color: ${if (isFirstRed) "&cRed" else "&eYellow"}"))
+        var temp = LangManager.getListPrefixed("gui.skull.lore", hashMapOf(
+            "color" to if (isFirstRed) redName else yellowName
+        ))
+        gui.setSlot(17, GuiButton(skullPlayer).setName(LangManager.getStringPrefixed("gui.skull.name", hashMapOf("player" to player.name))).setLoreList(temp))
         val pane = if (isFirstRed) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()
         gui.setSlot(8, GuiButton(pane).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow
         //if (isFirstRed) colorMapper[gameId] = Triple(playerMapper[player.uniqueId]?.id ?: 0, 8, true) else colorMapper[gameId] = Triple(playerMapper[player.uniqueId]?.id ?: 0, 8, false)
@@ -82,7 +88,10 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             if (ConnectFour.useOld) skullOpponentMeta.setOwner(opponent.name) else skullOpponentMeta.setOwningPlayer(opponent)
             itemMeta = skullOpponentMeta
         }
-        gui.setSlot(44, GuiButton(skullOpponent).setName("&9${opponent.name}").setLore(" ", "&7&l| &7Color: ${if (isFirstRed.not()) "&cRed" else "&eYellow"}"))
+        temp = LangManager.getListPrefixed("gui.skull.lore", hashMapOf(
+            "color" to if (isFirstRed.not()) redName else yellowName
+        ))
+        gui.setSlot(44, GuiButton(skullOpponent).setName(LangManager.getStringPrefixed("gui.skull.name", hashMapOf("player" to opponent.name))).setLoreList(temp))
         gui.setSlot(53, GuiButton(if (isFirstRed.not()) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow
 
         playerMapper[player.uniqueId] = PlayerModel(if (randomNum == 0) 0 else 1, isRed = isFirstRed, paneSlot = 8)
@@ -128,8 +137,8 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             gridMapper.remove(gameId)
 
             if (!end) {
-                plugin.texter.response(player, "&cGame has been closed")
-                plugin.texter.response(opponent, "&cGame has been closed")
+                plugin.texter.response(player, LangManager.getStringPrefixed("game_closed"), TextModifier(false))
+                plugin.texter.response(opponent, LangManager.getStringPrefixed("game_closed"), TextModifier(false))
                 player.ps(XSound.BLOCK_ANVIL_LAND)
                 opponent.ps(XSound.BLOCK_ANVIL_LAND)
             }
@@ -182,7 +191,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
                 }
                 else if (totalMoves > 41 && win == null) {
                     end = true
-                    gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.orangePane.clone()).setName("&6&lDRAW"))
+                    gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.orangePane.clone()).setName(LangManager.getString("gui.draw") ?: "&6&lDRAW"))
                     plugin.configLoader.data[player.uniqueId.toString()]?.let {
                         it.gamesPlayed++
                         it.draws++
@@ -196,7 +205,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
                     end = true
                     win.forEach { rows ->
                         rows.forEach {
-                            gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
+                            gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName(LangManager.getString("gui.win") ?: "&a&lWIN"))
                         }
                         //gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName("&a&lWIN"))
                     }
@@ -224,13 +233,14 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
 
                     gui.fillSlots(gui.getCurrentPageIndex(), setOf(16, 25, 34, 43), GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"))
                     val paneSlot = playerMapper[event.whoClicked.uniqueId]?.paneSlot ?: 53
+                    val winnerText = LangManager.getString("gui.winner") ?: "&e&lWINNER"
                     if (paneSlot == 8) {
-                        gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
-                        gui.setSlot(paneSlot+18, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
+                        gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ $winnerText &a&l▼&6&l▼"))
+                        gui.setSlot(paneSlot+18, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ $winnerText &a&l▲&6&l▲"))
                     }
                     else {
-                        gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ &e&lWINNER &a&l▲&6&l▲"))
-                        gui.setSlot(paneSlot-18, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ &e&lWINNER &a&l▼&6&l▼"))
+                        gui.setSlot(paneSlot, StaticItems.greenPaneGlow.setName("&a&l▲&6&l▲ $winnerText &a&l▲&6&l▲"))
+                        gui.setSlot(paneSlot-18, StaticItems.greenPaneGlow.setName("&a&l▼&6&l▼ $winnerText &a&l▼&6&l▼"))
                     }
                 }
                 Bukkit.getScheduler().runTaskLater(plugin, Runnable {
@@ -341,7 +351,10 @@ private val border: Set<Int> = setOf(16, 25, 34, 43)
 // EXTENSION FUNCTION
 fun GuiMenu.switchMove(int: Int, p0: String) {
     val item: GuiButton = if (int == 0) StaticItems.redPaneGlow else StaticItems.yellowPaneGlow
-    val button: GuiButton = item.setLoreList(listOf(" ", "&7&l| &fOn move: &9$p0"))
+    val list = LangManager.getListPrefixed("gui.border_item_lore", hashMapOf(
+        "player" to p0
+    ))
+    val button: GuiButton = item.setLoreList(list)
     border.forEach { slot ->
         setSlot(slot, button)
     }

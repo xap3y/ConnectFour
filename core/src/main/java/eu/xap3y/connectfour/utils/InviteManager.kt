@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XSound
 import eu.xap3y.connectfour.ConnectFour
 import eu.xap3y.connectfour.ps
 import eu.xap3y.xalib.managers.Texter
+import eu.xap3y.xalib.objects.TextModifier
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import net.md_5.bungee.api.chat.ClickEvent
@@ -30,7 +31,7 @@ class InviteManager(private val plugin: ConnectFour = ConnectFour.instance) {
             target,
             Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, Runnable {
                 inviteMapper.removeIf { it.invited.uniqueId == target.uniqueId && it.inviter.uniqueId == player.uniqueId }
-                plugin.texter.response(player, "&cThe invitation has expired!")
+                plugin.texter.response(player, LangManager.getStringPrefixed("invite_expired"), TextModifier(false))
             }, 20L * plugin.configModel.inviteTimeout).taskId
         ))
 
@@ -53,73 +54,80 @@ class InviteManager(private val plugin: ConnectFour = ConnectFour.instance) {
             val text = Texter.formatOneLine(map)
             target.sendMessage(text)
         }*/
-        if (ConnectFour.useTextComponents.not()) {
-            val text = "&aYou have been invited to a game by &e${player.name}&7. Type &a/cf accept ${player.name} &7to accept or &c/cf reject ${player.name} &7to reject"
-            plugin.texter.response(target, text)
-        } else if (ConnectFour.useTextComponents && ConnectFour.useNew) {
-            val lineHeader = "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
-            val line = "&a&m-+----------------------------------------------+-"
-            val line2 = "&fYou have been invited to a game by &e&l${player.name}"
+        val lineHeader = LangManager.getString("invite.header")
+        val line = LangManager.getString("invite.footer")
+        val line2 = LangManager.getStringPrefixed("invite.text", hashMapOf(
+            "player" to player.name
+        ))
 
-            val recreateMid = Texter.centered("&7[&aACCEPT&7]    &7[&cREJECT&7]")
+        val button1 = LangManager.getString("invite.accept.text") ?: "&7[&aACCEPT&7]"
+        val button2 = LangManager.getString("invite.reject.text") ?: "&7[&cREJECT&7]"
+        val button1Hover = LangManager.getString("invite.accept.hover") ?: "&aClick to accept"
+        val button2Hover = LangManager.getString("invite.reject.hover") ?: "&cClick to reject"
+
+        val textButtons = LangManager.getString("invite.buttons")?.replace("{button1}", button1)?.replace("{button2}", button2) ?: "$button1    $button2"
+        val recreateMid = Texter.centered(textButtons)
+
+        val spaces = recreateMid.indexOfFirst { it == '&' }
+        val spacesText = recreateMid.substring(0, spaces)
+
+        if (ConnectFour.useTextComponents.not()) {
+            val text = LangManager.getStringPrefixed("invite.bukkit_invite", hashMapOf(
+                "player" to player.name
+            ))
+            plugin.texter.response(target, text, TextModifier(false))
+        } else if (ConnectFour.useTextComponents && ConnectFour.useNew) {
             plugin.texter.console(recreateMid)
             // the created spaces before the first text so like "           &7[&aACCEPT&7]   &7[&cREJECT&7]"
             // get the first spaces
-            val spaces = recreateMid.indexOfFirst { it == '&' }
-            val spacesText = recreateMid.substring(0, spaces)
             // get how many spaces before first text
             val comp = ComponentBuilder(spacesText)
-                .append(ComponentBuilder(Texter.colored("&7[&aACCEPT&7]"))
-                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored("&aClick to accept")))))
+                .append(ComponentBuilder(Texter.colored(button1))
+                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored(button1Hover)))))
                     .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf accept ${player.name}"))
                     .create()
                 )
 
                 .append(ComponentBuilder("    ").create())
 
-                .append(ComponentBuilder(Texter.colored("&7[&cREJECT&7]"))
-                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored("&cClick to reject")))))
+                .append(ComponentBuilder(Texter.colored(button2))
+                    .event(HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored(button2Hover)))))
                     .event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf reject ${player.name}"))
                     .create()
                 )
                 .create()
             try {
-                target.sendMessage(Texter.colored(lineHeader))
+                if (lineHeader != null) target.sendMessage(Texter.colored(lineHeader))
                 target.sendMessage(Texter.colored(Texter.centered(line2)))
                 target.spigot().sendMessage(*comp)
-                target.sendMessage(Texter.colored(line))
+                if (line != null) target.sendMessage(Texter.colored(line))
             } catch (e: Exception) {
-                plugin.texter.response(target, "&cAn error occurred while sending the invitation")
+                plugin.texter.response(target, LangManager.getStringPrefixed("invite_err"), TextModifier(false))
             }
             /*target.sendMessage(*comp)*/
         } else {
-            val recreateMid = Texter.centered("&7[&aACCEPT&7]    &7[&cREJECT&7]")
-            val spaces = recreateMid.indexOfFirst { it == '&' }
-            val spacesText = recreateMid.substring(0, spaces)
-
-            val lineHeader = "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
-            val line = "&a&m-+----------------------------------------------+-"
-            val line2 = "&fYou have been invited to a game by &e&l${player.name}"
             val set: Set<TextComponent> = setOf(
                 TextComponent(spacesText),
-                TextComponent(Texter.colored("&7[&aACCEPT&7]")).apply {
-                    hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored("&aClick to accept"))))
+                TextComponent(Texter.colored(button1)).apply {
+                    hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored(button1Hover))))
                     clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf accept ${player.name}")
                 },
                 TextComponent("    "),
-                TextComponent(Texter.colored("&7[&cREJECT&7]")).apply {
-                    hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored("&cClick to reject"))))
+                TextComponent(Texter.colored(button2)).apply {
+                    hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, arrayOf(TextComponent(Texter.colored(button2Hover))))
                     clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf reject ${player.name}")
                 }
             )
-            target.sendMessage(Texter.colored(lineHeader))
+            if (lineHeader != null) target.sendMessage(Texter.colored(lineHeader))
             target.sendMessage(Texter.colored(Texter.centered(line2)))
             target.spigot().sendMessage(*set.toTypedArray())
-            target.sendMessage(Texter.colored(line))
+            if (line != null) target.sendMessage(Texter.colored(line))
         }
 
         target.ps(XSound.ENTITY_EXPERIENCE_ORB_PICKUP)
         player.ps(XSound.ENTITY_EXPERIENCE_ORB_PICKUP)
+
+        System.gc()
     }
 
     /*fun isInvited(player: Player): Boolean {
@@ -145,8 +153,10 @@ class InviteManager(private val plugin: ConnectFour = ConnectFour.instance) {
         inviteMapper.remove(data)
         // Start game
         plugin.gameManager.startGame(data.inviter, player)
-        plugin.texter.response(data.inviter, "&e${player.name} &ahas accepted the invitation")
-        plugin.texter.response(player, "&aYou have accepted the invitation!")
+        plugin.texter.response(data.inviter, LangManager.getStringPrefixed("invite_accept_other", hashMapOf(
+            "player" to player.name
+        )), TextModifier(false))
+        plugin.texter.response(player, LangManager.getStringPrefixed("invite_accept_self"), TextModifier(false))
     }
 
     fun reject(player: Player, inviter: Player) {
@@ -155,8 +165,10 @@ class InviteManager(private val plugin: ConnectFour = ConnectFour.instance) {
         Bukkit.getScheduler().cancelTask(data.taskId)
         inviteMapper.remove(data)
         data.inviter.ps(XSound.ENTITY_VILLAGER_NO)
-        plugin.texter.response(data.inviter, "&e${player.name} &chas rejected the invitation!")
-        plugin.texter.response(player, "&cYou have rejected the invitation!")
+        plugin.texter.response(data.inviter, LangManager.getStringPrefixed("invite_reject_other", hashMapOf(
+            "player" to player.name
+        )), TextModifier(false))
+        plugin.texter.response(player, LangManager.getStringPrefixed("invite_reject_self"), TextModifier(false))
         // Send rejection message
     }
 }

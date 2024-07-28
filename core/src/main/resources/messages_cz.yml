@@ -1,0 +1,120 @@
+# {prefix} bude nahrazen prefixem definovaný v config.yml
+
+only_player: "{prefix}&cJen hráči mohou použít tento příkaz!"
+wrong_usage: "{prefix}&cŠpatné použití! &8(&7{usage}&8)"
+config_reload: "{prefix}&aKonfigurace znovu načtena!"
+no_stats_found_player: "{prefix}&cŽádné statistiky nenalezeny pro tohoto hráče!"
+no_leaderboard_entries: "{prefix}&cŽádné data!"
+invite_self_err: "{prefix}&aNemůžeš pozvat sám sebe!"
+player_already_playing: "{prefix}&aTento hráč již hraje hru!"
+self_already_playing: "{prefix}&cJiž jsi ve hře!"
+someone_already_invited: "{prefix}&cJiž jsi nekoho pozval!"
+player_already_invited: "{prefix}&cTohoto hráče jsi už pozval!"
+self_accept_err: "{prefix}&cNemůžeš přijmout sám sebe!"
+self_reject_err: "{prefix}&cNemůžeš odmítnout sám sebe!"
+no_invites_from_player: "{prefix}&cNemáš žádné pozvánky od tohoto hráče!"
+no_invites: "{prefix}&cNemáš žádné pozvánky!"
+invite_sent: "{prefix}&aPozval jsi hráče &e&l{player}"
+invite_expired: "{prefix}&cPozvánka expirovala!"
+invite_err: "{prefix}&cNastala chyba při posílání pozvánky"
+invite_accept_other: "{prefix}&e{player} &apřijmul pozvánku"
+invite_accept_self: "{prefix}&aPřijmul jsi pozvánku!"
+invite_reject_other: "{prefix}&e{player} &codmítl pozvánku!"
+invite_reject_self: "{prefix}&cOdmítl jsi pozvánku!"
+
+# Když jeden z hráču zavře GUI během hry
+game_closed: "{prefix}&cHra byla ukončena!"
+
+leaderboard:
+
+    # Pokud nechceš použít záhlaví nebo zápatí tak to prostě odeber
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    # Tento list musí být seřazen
+    symbols: ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"]
+
+    # Kolik hráčů by se mělo zobrazovat
+    # MAX = 10
+    # MIN = 1
+    entries: 10
+
+    entry: "     &e{symbol} &7{player} &f- &9{wins} výher  &7(&fWinRate: {winrate}&7)"
+
+gui:
+    title: "&b&lConnectFour"
+
+    yellow: "&eŽlutá"
+    red: "&4Červená"
+    draw: "&e&lRemíza"
+    win: "&2&lVýhra"
+    winner: "&e&lVÝTĚZ"
+
+    border_item_lore:
+        - " "
+        - "&7&l| &fHráč na tahu: &9{player}"
+
+    # Hráčské hlavy v GUI
+    skull:
+        name: "&9{player}"
+        lore:
+            - " "
+            - "&7&l| &7Barva: {color}"
+
+invite:
+
+    # Tohle uprav jen pokud máš CraftBukkit platformu
+    bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/cf accept {player} &7to accept or &c/cf reject {player} &7to reject"
+
+    # Pokud nechceš použít záhlaví nebo zápatí tak to prostě odeber
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    # Tento text bude mezi záhlavím a tlačítkama, neboli na 2 řádce
+    text: "&fByl jsi pozván do hry od hráče &e&l{player}"
+
+    # Tlačítka
+    accept:
+        text: "&7[&aPřijmout&7]"
+        hover: "&aKlikni pro přijmutí"
+
+    reject:
+        text: "&7[&cOdmítnout&7]"
+        hover: "&cKlikni pro odmítnutí"
+
+    # Tento text bude vycentrován mezi záhlavím a zápatím
+    buttons: "{button1}  &b-  {button2}"
+
+help:
+
+    # Pokud nechceš použít záhlaví nebo zápatí tak to prostě odeber
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    entry: " &9&l➢ &7{command} &8- &f{description}"
+
+    descriptions:
+        stats: "Zobrazí statistiky"
+        leaderboard: "Zobrazí žebríček nejlepších hráčů"
+        invite: "Pozve hráče"
+        accept: "Přijme pozvánku"
+        reject: "Odmítne pozvánku"
+        reload: "Znovu načte konfigurace"
+
+stats:
+
+    # Má být text vycentrovaný?
+    centered: true
+
+    # Pokud nechceš použít záhlaví nebo zápatí tak to prostě odeber
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    text: "&fStatistiky hráče &e&l{player}"
+
+    list:
+        - " &e&l➢ &7Výher: &9{wins} &e&l⮘"
+        - " &e&l➢ &7Proher: &9{losses} &e&l⮘"
+        - " &e&l➢ &7Remíz: &9{draws} &e&l⮘"
+        - " &e&l➢ &7Win rate: &9{winrate}% &e&l⮘"
+        - " &e&l➢ &7Odehráno her: &9{gamesPlayed} &e&l⮘"

@@ -1,6 +1,8 @@
 # Prefix for chat messages by this plugin
 prefix: "&7[&6ConnectFour&7] &r"
 
+lang: "en"
+
 # Should the plugin check for updates?
 updateCheck: true
 

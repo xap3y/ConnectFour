@@ -1,0 +1,120 @@
+# {prefix} will be replaced with prefix defined in config.yml
+
+only_player: "{prefix}&cYou must be a player to use this command!"
+wrong_usage: "{prefix}&cWrong usage! &8(&7{usage}&8)"
+config_reload: "{prefix}&aConfig reloaded!"
+no_stats_found_player: "{prefix}&cNo stats found for this player!"
+no_leaderboard_entries: "{prefix}&cNo stats found!"
+invite_self_err: "{prefix}&cYou can't invite yourself!"
+player_already_playing: "{prefix}&cThis player is already playing a game!"
+self_already_playing: "{prefix}&cYou are already playing a game!"
+someone_already_invited: "{prefix}&cYou already invited someone!"
+player_already_invited: "{prefix}&cYou already invited this player!"
+self_accept_err: "{prefix}&cYou can't accept your self!"
+self_reject_err: "{prefix}&cYou can't reject your self!"
+no_invites_from_player: "{prefix}&cYou don't have any invites from this player!"
+no_invites: "{prefix}&cYou don't have any invites!"
+invite_sent: "{prefix}&aInvite sent to &e&l{player}"
+invite_expired: "{prefix}&cThe invitation has expired!"
+invite_err: "{prefix}&cAn error occurred while sending the invitation"
+invite_accept_other: "{prefix}&e{player} &ahas accepted the invitation"
+invite_accept_self: "{prefix}&aYou have accepted the invitation!"
+invite_reject_other: "{prefix}&e{player} &chas rejected the invitation!"
+invite_reject_self: "{prefix}&cYou have rejected the invitation!"
+
+# When one of the player exit out of game GUI
+game_closed: "{prefix}&cGame has been closed"
+
+leaderboard:
+
+    # If you dont want to use header or footer, simply remove them
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    # Keep in mind that this array have to be sorted
+    symbols: ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"]
+
+    # How many players should be showed up
+    # MAX = 10
+    # MIN = 1
+    entries: 10
+
+    entry: "     &e{symbol} &7{player} &f- &9{wins} wins  &7(&fWinRate: {winrate}&7)"
+
+gui:
+    title: "&6&lConnectFour"
+
+    yellow: "&eYellow"
+    red: "&cRed"
+    draw: "&6&lDRAW"
+    win: "&a&lWIN"
+    winner: "&e&lWINNER"
+
+    border_item_lore:
+        - " "
+        - "&7&l| &fOn move: &9{player}"
+
+    # Player heads in the GUI
+    skull:
+        name: "&9{player}"
+        lore:
+            - " "
+            - "&7&l| &7Color: {color}"
+
+invite:
+
+    # Modify this if you are running CraftBukkit platform
+    bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/cf accept {player} &7to accept or &c/cf reject {player} &7to reject"
+
+    # If you dont want to use header or footer, simply remove them
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    # Text that will be between header and clickable buttons. (second line)
+    text: "&fYou have been invited to a game by &e&l{player}"
+
+    # Clickable buttons
+    accept:
+        text: "&7[&aACCEPT&7]"
+        hover: "&aClick to accept"
+
+    reject:
+        text: "&7[&cREJECT&7]"
+        hover: "&cClick to reject"
+
+    # This text below will be centered between the header and footer
+    buttons: "{button1}    {button2}"
+
+help:
+
+    # If you dont want to use header or footer, simply remove them
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    entry: " &9&l➢ &7{command} &8- &f{description}"
+
+    descriptions:
+        stats: "View stats"
+        leaderboard: "View leaderboard"
+        invite: "Invite a player"
+        accept: "Accept an invite"
+        reject: "Reject an invite"
+        reload: "Reload the config"
+
+stats:
+
+    # Should be all text centered if executor is player?
+    centered: true
+
+    # If you dont want to use header or footer, simply remove them
+    header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
+    footer: "&a&m-+----------------------------------------------+-"
+
+    text: "&e&l{player} &fstatistics"
+
+    list:
+        - " &e&l➢ &7Wins: &9{wins} &e&l⮘"
+        - " &e&l➢ &7Losses: &9{losses} &e&l⮘"
+        - " &e&l➢ &7Draws: &9{draws} &e&l⮘"
+        - " &e&l➢ &7Win rate: &9{winrate}% &e&l⮘"
+        - " &e&l➢ &7Games played: &9{gamesPlayed} &e&l⮘"
