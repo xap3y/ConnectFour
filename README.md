@@ -58,7 +58,9 @@ Supports PlaceholderAPI and miniPlaceholers
 ## Configuration
 
 Automatically generated configuration file is located in `plugins/ConnectFour/config.yml` \
-The configuration is explained in the file itself.
+The configuration is explained in the file itself. <br>
+
+You can also modify messages in `plugins/ConnectFour/lang/messages-en.yml`
 
 <div align=center>
 
