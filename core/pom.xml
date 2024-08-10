@@ -139,7 +139,7 @@
         <dependency>
             <groupId>com.github.xap3y</groupId>
             <artifactId>xagui</artifactId>
-            <version>pre-0.4</version>
+            <version>e83626bec29146d023d7d6cdb5210404cac09aa1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
