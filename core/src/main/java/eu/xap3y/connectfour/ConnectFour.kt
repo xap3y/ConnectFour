@@ -88,7 +88,7 @@ class ConnectFour : JavaPlugin() {
         var isPaper: Boolean = false
         const val VERSION_UPSTREAM_URL = "https://raw.githubusercontent.com/xap3y/ConnectFour/main/VER"
         var totalGames = 0
-        const val VERSION: String = "1.1.0"
+        const val VERSION: String = "1.1.1"
         var language = "en";
     }
 }
