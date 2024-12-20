@@ -9,7 +9,7 @@
     <parent>
         <artifactId>ConnectFour</artifactId>
         <groupId>eu.xap3y.connectfour</groupId>
-        <version>1.1.1</version>
+        <version>1.2.0</version>
     </parent>
 
     <build>
@@ -137,9 +137,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.xap3y</groupId>
+            <groupId>eu.xap3y</groupId>
             <artifactId>xagui</artifactId>
-            <version>e83626bec29146d023d7d6cdb5210404cac09aa1</version>
+            <version>1.2-beta.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -157,12 +157,12 @@
         <dependency>
             <groupId>org.incendo</groupId>
             <artifactId>cloud-annotations</artifactId>
-            <version>2.0.0-rc.2</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.incendo</groupId>
             <artifactId>cloud-paper</artifactId>
-            <version>2.0.0-beta.9</version>
+            <version>2.0.0-beta.10</version>
         </dependency>
         <dependency>
             <groupId>com.github.cryptomorin</groupId>

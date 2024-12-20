@@ -10,5 +10,7 @@ data class ConfigModel(
     val hookPapi: Boolean,
     val hookMiniPlaceholders: Boolean,
     val metrics: Boolean,
-    val updates: Boolean
+    val updates: Boolean,
+    val doubleEscape: Boolean,
+    val moveTimeout: Int
 )

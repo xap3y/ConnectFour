@@ -41,7 +41,9 @@ class ConfigLoader(private val plugin: ConnectFour) {
             plugin.config.getBoolean("hooks.placeholderAPI", true),
             plugin.config.getBoolean("hooks.miniPlaceholders", false),
             plugin.config.getBoolean("metrics", true),
-            updates = plugin.config.getBoolean("updateCheck", true)
+            updates = plugin.config.getBoolean("updateCheck", true),
+            doubleEscape = plugin.config.getBoolean("doubleEscape", true),
+            moveTimeout = plugin.config.getInt("moveTimeout", 0),
         )
     }
 

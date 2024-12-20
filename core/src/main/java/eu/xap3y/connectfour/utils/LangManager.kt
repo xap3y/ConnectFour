@@ -3,7 +3,6 @@ package eu.xap3y.connectfour.utils
 import eu.xap3y.connectfour.ConnectFour
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
-import java.io.InputStream
 
 class LangManager {
 

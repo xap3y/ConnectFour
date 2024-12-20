@@ -7,6 +7,7 @@ import eu.xap3y.connectfour.ps
 import eu.xap3y.connectfour.utils.StaticItems.greenPane
 import eu.xap3y.xagui.GuiMenu
 import eu.xap3y.xagui.models.GuiButton
+import eu.xap3y.xalib.managers.Texter
 import eu.xap3y.xalib.objects.TextModifier
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -23,6 +24,8 @@ private val playerMapper = hashMapOf<UUID, PlayerModel>()
 class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance) {
 
     private val playingPlayers = ConcurrentHashMap<Player, Player>()
+    private val timeToMove = ConcurrentHashMap<UUID, Int>()
+    private val exitingPlayers: MutableList<UUID> = mutableListOf()
 
     /*private val borderPane = (XMaterial.BLACK_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1))
     private val redPane = (XMaterial.RED_STAINED_GLASS_PANE.parseItem() ?: ItemStack(Material.STAINED_GLASS_PANE, 1)).apply { itemMeta = itemMeta?.apply { displayName = Texter.colored("&cRed") } }
@@ -38,6 +41,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
 
     fun startGame(player: Player, opponent: Player) {
 
+        var ignoreEscKey: Boolean = false;
         var onMove: Int // 0 - player, 1 - opponent | 0 - red, 1 - yellow
         var end = false
         val gameId = (0..99999).random() // Random game ID in range 0-99999
@@ -92,7 +96,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             "color" to if (isFirstRed.not()) redName else yellowName
         ))
         gui.setSlot(44, GuiButton(skullOpponent).setName(LangManager.getStringPrefixed("gui.skull.name", hashMapOf("player" to opponent.name))).setLoreList(temp))
-        gui.setSlot(53, GuiButton(if (isFirstRed.not()) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow
+        gui.setSlot(53, GuiButton(if (isFirstRed.not()) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()).addItemFlag(ItemFlag.HIDE_ENCHANTS)) // Set player color (red or yellow)
 
         playerMapper[player.uniqueId] = PlayerModel(if (randomNum == 0) 0 else 1, isRed = isFirstRed, paneSlot = 8)
         playerMapper[opponent.uniqueId] = PlayerModel(if (randomNum == 0) 1 else 0, isRed = isFirstRed.not(), paneSlot = 53)
@@ -118,6 +122,24 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
 
         var oneClose = false
         gui.setOnClose { event ->
+
+            //plugin.texter.console("DOUBLE ESCAPE: ${plugin.configModel.doubleEscape}")
+            if (plugin.configModel.doubleEscape && !exitingPlayers.contains(event.player.uniqueId) && !ignoreEscKey) {
+                val p: Player = event.player as Player
+                if (p.isOnline) {
+                    exitingPlayers.add(p.uniqueId)
+                    plugin.texter.response(p, LangManager.getStringPrefixed("esp_confirm"), TextModifier(false))
+                    Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, Runnable {
+                        this.exitingPlayers.remove(p.uniqueId);
+                    }, 30L)
+                    Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, Runnable {
+                        gui.open(p)
+                    }, 5L)
+                }
+                return@setOnClose
+            } else if (plugin.configModel.doubleEscape && exitingPlayers.contains(event.player.uniqueId)) {
+                ignoreEscKey = true;
+            }
             if (oneClose) return@setOnClose
             oneClose = true
             plugin.openedGuis.remove(player)
@@ -135,6 +157,10 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
             playerMapper.remove(player.uniqueId)
             playerMapper.remove(opponent.uniqueId)
             gridMapper.remove(gameId)
+            exitingPlayers.remove(player.uniqueId)
+            exitingPlayers.remove(opponent.uniqueId)
+            timeToMove[opponent.uniqueId]?.let { Bukkit.getScheduler().cancelTask(it) }
+            timeToMove[player.uniqueId]?.let { Bukkit.getScheduler().cancelTask(it) }
 
             if (!end) {
                 plugin.texter.response(player, LangManager.getStringPrefixed("game_closed"), TextModifier(false))
@@ -159,6 +185,71 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
 
             // Fall animation
             val button: ItemStack = if (playerNumber == 0) StaticItems.redPane.clone() else StaticItems.yellowPane.clone()
+
+            arrayOf(17, 44).forEach {
+                val itemMeta = gui.inventory.getItem(it)?.itemMeta
+                if (itemMeta != null) {
+                    val lore: MutableList<String>? = itemMeta.lore
+                    if (lore != null) {
+                        if (lore.lastOrNull()?.contains("Time left:") == true) {
+                            lore.removeLast();
+                            lore.removeLast();
+                            itemMeta.lore = lore;
+                            gui.inventory.getItem(it)?.itemMeta = itemMeta
+                        }
+                    }
+                }
+            }
+
+            //plugin.texter.console("MOVE TIMEOUT: ${plugin.configModel.moveTimeout}")
+            if (plugin.configModel.moveTimeout > 0) {
+                val tempId: Int? = this.timeToMove[event.whoClicked.uniqueId]
+                if (tempId != null) {
+                    Bukkit.getScheduler().cancelTask(tempId)
+                }
+
+                val playerToMove: Player = if (event.whoClicked.uniqueId == player.uniqueId) {
+                    opponent
+                } else {
+                    player
+                }
+                //plugin.texter.console("PLAYER TO COUNT ON: ${playerToMove.displayName}")
+                var current: Int = 0;
+                val taskId: Int = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, Runnable {
+                    // 44, 17
+                    if (current < plugin.configModel.moveTimeout) {
+                        val slot: Int = if (playerToMove.uniqueId == player.uniqueId) 17 else 44
+                        val item: ItemStack? = gui.inventory.getItem(slot)
+                        val itemMeta=  item?.itemMeta
+                        if (itemMeta != null) {
+                            val lore: MutableList<String>? = itemMeta.lore
+                            if (lore != null) {
+                                if (current > 0) {
+                                    lore.removeLast();
+                                    lore.removeLast();
+                                }
+                                lore.add(" ")
+                                lore.add(Texter.colored("&cTime left: &f" + (plugin.configModel.moveTimeout-current)))
+                                itemMeta.lore = lore;
+                                item.itemMeta = itemMeta
+                            }
+                        }
+                    } else {
+                        ignoreEscKey = true;
+                        gui.close(opponent)
+                        gui.close(player)
+                        if (fallingTask != null) {
+                            fallingTask?.cancel()
+                            fallingTask = null
+                        }
+
+                        plugin.texter.response(player, LangManager.getStringPrefixed("move_timeout", hashMapOf("player" to playerToMove.displayName)), TextModifier(false))
+                        plugin.texter.response(opponent, LangManager.getStringPrefixed("move_timeout", hashMapOf("player" to playerToMove.displayName)), TextModifier(false))
+                    }
+                    current++;
+                }, 0L, 20L).taskId
+                timeToMove[playerToMove.uniqueId] = taskId;
+            }
 
 
             fallingTask = Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
@@ -203,6 +294,7 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
                     plugin.configLoader.saveData()
                 } else if (win != null) {
                     end = true
+                    ignoreEscKey = true;
                     win.forEach { rows ->
                         rows.forEach {
                             gui.setSlot(it.first * 9 + it.second, GuiButton(greenPane.clone()).setName(LangManager.getString("gui.win") ?: "&a&lWIN"))
@@ -305,10 +397,10 @@ class Connect4GameManager(private val plugin: ConnectFour = ConnectFour.instance
 
     private fun findWinningPatterns(gameId: Int, player: Int): List<List<Pair<Int, Int>>>? {
         val directions = listOf(
-            Pair(1, 0),  // horizontal
-            Pair(0, 1),  // vertical
-            Pair(1, 1),  // diagonal /
-            Pair(1, -1)  // diagonal \
+            Pair(1, 0),  // horizontal  -
+            Pair(0, 1),  // vertical    |
+            Pair(1, 1),  // diagonal    /
+            Pair(1, -1)  // diagonal    \
         )
         val board = gridMapper[gameId] ?: return null
         val rows = board.size

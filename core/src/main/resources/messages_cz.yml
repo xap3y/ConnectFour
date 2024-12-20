@@ -21,6 +21,8 @@ invite_accept_other: "{prefix}&e{player} &apřijmul pozvánku"
 invite_accept_self: "{prefix}&aPřijmul jsi pozvánku!"
 invite_reject_other: "{prefix}&e{player} &codmítl pozvánku!"
 invite_reject_self: "{prefix}&cOdmítl jsi pozvánku!"
+move_timeout: "{prefix}&cHráč &e{player} &cnestihl udělat svůj tah včas!"
+esp_confirm: "{prefix}&fPro ukončení hry odejdi z menu ještě jednou!"
 
 # Když jeden z hráču zavře GUI během hry
 game_closed: "{prefix}&cHra byla ukončena!"

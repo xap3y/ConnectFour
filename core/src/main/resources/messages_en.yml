@@ -21,6 +21,8 @@ invite_accept_other: "{prefix}&e{player} &ahas accepted the invitation"
 invite_accept_self: "{prefix}&aYou have accepted the invitation!"
 invite_reject_other: "{prefix}&e{player} &chas rejected the invitation!"
 invite_reject_self: "{prefix}&cYou have rejected the invitation!"
+move_timeout: "{prefix}&cPlayer &e{player} &ctook so long to make his move!"
+esp_confirm: "{prefix}&fPress escape key one more time to exit the game!"
 
 # When one of the player exit out of game GUI
 game_closed: "{prefix}&cGame has been closed"

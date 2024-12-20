@@ -16,6 +16,13 @@ hooks:
 # Send bstats metrics
 metrics: true
 
+# Can player escape by pressing ESC key single time? true = have to press ESC key 2 times
+doubleEscape: true
+
+# How max should we wait for opponent to make his move (in seconds)
+# 0 = disabled
+moveTimeout: 120
+
 # Timeout in seconds for invites
 # Invite will expire in x seconds
 inviteTimeout: 60
