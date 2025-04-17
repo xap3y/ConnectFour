@@ -2,8 +2,8 @@
 
 # MC Connect4 GUI Minigame
 
-Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.eu/docs/). \
-Supports any bukkit platform from 1.8 up to 1.21
+Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.tech/). \
+Supports any bukkit platform from 1.8 up to 1.21.4
 
 
 [![bStats Servers](https://img.shields.io/bstats/servers/22557)](https://bstats.org/plugin/bukkit/ConnectFour/22557)
@@ -12,8 +12,7 @@ Supports any bukkit platform from 1.8 up to 1.21
 [![Test build maven](https://github.com/xap3y/ConnectFour/actions/workflows/maven-publish.yml/badge.svg)](https://github.com/xap3y/ConnectFour/actions/workflows/maven-publish.yml)
 
 ## Showcase
-
-<img src="https://xap3y.eu/static/con4.png">
+https://youtu.be/ljg6s_O0n8o
 
 </div>
 
