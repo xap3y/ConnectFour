@@ -1,9 +1,5 @@
-.gradle/
-.idea/
-.eclipse/
-.kotlin/
-libs/
-build/
-core/target/
-V1_20_R1/target/
-*.iml
+.gradle
+.idea
+build
+out
+server

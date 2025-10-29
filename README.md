@@ -2,8 +2,8 @@
 
 # MC Connect4 GUI Minigame
 
-Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.tech/). \
-Supports any bukkit platform from 1.8 up to 1.21.4
+Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.space/). \
+Supports any bukkit platform from 1.8 up to 1.21.10
 
 
 [![bStats Servers](https://img.shields.io/bstats/servers/22557)](https://bstats.org/plugin/bukkit/ConnectFour/22557)
@@ -12,24 +12,25 @@ Supports any bukkit platform from 1.8 up to 1.21.4
 [![Test build maven](https://github.com/xap3y/ConnectFour/actions/workflows/maven-publish.yml/badge.svg)](https://github.com/xap3y/ConnectFour/actions/workflows/maven-publish.yml)
 
 ## Showcase
-https://youtu.be/ljg6s_O0n8o
+
+<img src="https://r2.xap3y.space/media/CCDSXSKR">
 
 </div>
 
 ## Support
 - Java version from 8 up to 22
-- 1.8.8-1.21 Spigot
+- 1.8.8-1.21.10 Spigot
 - 1.8.8-1.21 CraftBukkit (without clickable chat messages)
-- 1.8.8-1.21 PaperSpigot
+- 1.8.8-1.21.10 PaperSpigot
 - 1.16.5-1.21 Purpur
+- Folia
 
 <details>
 <summary>Tested on</summary>
 
-- 1.8.8 Spigot, CraftBukkit, PaperSpigot
-- 1.21 Spigot, CraftBukkit, PaperSpigot
+- 1.21.10 Spigot, CraftBukkit, PaperSpigot
 - 1.20.6, 1.19.4, 1.16.5, 1.12.2, 1.13.2, 1.11.2, 1.10.2 PaperSpigot
-- 1.21, 1.20.6, 1.16.5 Purpur
+- 1.21.8 Folia
 
 </details>
 
@@ -52,7 +53,7 @@ Supports PlaceholderAPI and miniPlaceholers
 `%connectfour_losses%` \
 `%connectfour_draws%` \
 `%connectfour_played%` \
-`%connectfour_winrate%` 
+`%connectfour_winrate%`
 
 ## Configuration
 
@@ -71,8 +72,8 @@ You can also modify messages in `plugins/ConnectFour/lang/messages-en.yml`
 
 ### Building from source
 1. Clone the repository
-2. Run `./mvn clean install -P Impl`
-3. Copy the jar from `core/target/` into your plugins folder
+2. Run `./gradlew build` (Linux/Mac) or `gradlew build` (Windows)
+3. Copy the jar from `build/libs` into your plugins folder
 
 [Ko-Fi]: https://storage.ko-fi.com/cdn/brandasset/kofi_s_tag_white.png
 

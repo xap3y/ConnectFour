@@ -1,0 +1,9 @@
+name: ConnectFour
+version: '1.3.0'
+main: eu.xap3y.connectfour.ConnectFour
+api-version: '1.13'
+folia-supported: true
+authors: [XAP3Y]
+website: https://xap3y.fun
+
+softdepend: [PlaceholderAPI, MiniPlaceholders]

@@ -1,0 +1,181 @@
+package eu.xap3y.connectfour.manager;
+
+import com.cryptomorin.xseries.XSound;
+import eu.xap3y.connectfour.ConnectFour;
+import eu.xap3y.connectfour.service.Texter;
+import eu.xap3y.connectfour.util.PlayerExtensions;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+public class InviteManager {
+
+    private final ConnectFour plugin;
+
+    private static class Invite {
+        final Player inviter;
+        final Player invited;
+        int taskId;
+
+        Invite(Player inviter, Player invited, int taskId) {
+            this.inviter = inviter;
+            this.invited = invited;
+            this.taskId = taskId;
+        }
+    }
+
+    private final List<Invite> inviteMapper = new ArrayList<>();
+
+    public InviteManager() {
+        this(ConnectFour.getInstance());
+    }
+
+    public InviteManager(ConnectFour plugin) {
+        this.plugin = plugin;
+    }
+
+    public void invite(Player player, Player target) {
+        int taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            synchronized (inviteMapper) {
+                inviteMapper.removeIf(i -> i.invited.getUniqueId().equals(target.getUniqueId()) && i.inviter.getUniqueId().equals(player.getUniqueId()));
+            }
+            ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("invite_expired"), true, false);
+        }, 20L * ConnectFour.getConfigModel().getInviteTimeout()).getTaskId();
+
+        synchronized (inviteMapper) {
+            inviteMapper.add(new Invite(player, target, taskId));
+        }
+
+        String lineHeader = LangManager.getString("invite.header");
+        String lineFooter = LangManager.getString("invite.footer");
+        String line2 = LangManager.getStringPrefixed("invite.text", java.util.Map.of("player", player.getName()));
+
+        String button1 = Objects.requireNonNullElse(LangManager.getString("invite.accept.text"), "&7[&aACCEPT&7]");
+        String button2 = Objects.requireNonNullElse(LangManager.getString("invite.reject.text"), "&7[&cREJECT&7]");
+        String button1Hover = Objects.requireNonNullElse(LangManager.getString("invite.accept.hover"), "&aClick to accept");
+        String button2Hover = Objects.requireNonNullElse(LangManager.getString("invite.reject.hover"), "&cClick to reject");
+
+        String textButtons = LangManager.getString("invite.buttons");
+        if (textButtons == null) textButtons = button1 + "    " + button2;
+        textButtons = textButtons.replace("{button1}", button1).replace("{button2}", button2);
+        String recreateMid = Texter.centered(textButtons);
+
+        int spaces = recreateMid.indexOf('&');
+        if (spaces < 0) spaces = 0;
+        String spacesText = recreateMid.substring(0, spaces);
+
+        if (!ConnectFour.useTextComponents) {
+            String text = LangManager.getStringPrefixed("invite.bukkit_invite", java.util.Map.of("player", player.getName()));
+            ConnectFour.getTexter().response(target, text, true, false);
+        } else if (ConnectFour.useTextComponents && ConnectFour.useNew) {
+            try {
+                ComponentBuilder comp = new ComponentBuilder(spacesText)
+                        .append(new ComponentBuilder(Texter.colored(button1))
+                                .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent(Texter.colored(button1Hover))}))
+                                .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf accept " + player.getName()))
+                                .create()
+                        )
+                        .append(new ComponentBuilder("    ").create())
+                        .append(new ComponentBuilder(Texter.colored(button2))
+                                .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent(Texter.colored(button2Hover))}))
+                                .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf reject " + player.getName()))
+                                .create()
+                        );
+
+                if (lineHeader != null) target.sendMessage(Texter.colored(lineHeader));
+                target.sendMessage(Texter.colored(Texter.centered(line2)));
+                target.spigot().sendMessage(comp.create());
+                if (lineFooter != null) target.sendMessage(Texter.colored(lineFooter));
+            } catch (Exception e) {
+                ConnectFour.getTexter().response(target, LangManager.getStringPrefixed("invite_err"), true, false);
+            }
+        } else {
+            TextComponent compSpaces = new TextComponent(spacesText);
+            TextComponent comp1 = new TextComponent(Texter.colored(button1));
+            comp1.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent(Texter.colored(button1Hover))}));
+            comp1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf accept " + player.getName()));
+            TextComponent compSpaceMid = new TextComponent("    ");
+            TextComponent comp2 = new TextComponent(Texter.colored(button2));
+            comp2.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent(Texter.colored(button2Hover))}));
+            comp2.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/cf reject " + player.getName()));
+
+            if (lineHeader != null) target.sendMessage(Texter.colored(lineHeader));
+            target.sendMessage(Texter.colored(Texter.centered(line2)));
+            target.spigot().sendMessage(compSpaces, comp1, compSpaceMid, comp2);
+            if (lineFooter != null) target.sendMessage(Texter.colored(lineFooter));
+        }
+
+        PlayerExtensions.ps(target, XSound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+        PlayerExtensions.ps(player, XSound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+
+        System.gc();
+    }
+
+    public boolean inviter(Player player) {
+        synchronized (inviteMapper) {
+            for (Invite i : inviteMapper) {
+                if (i.inviter.getUniqueId().equals(player.getUniqueId())) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isInvitedBy(Player inviter, Player player) {
+        synchronized (inviteMapper) {
+            for (Invite i : inviteMapper) {
+                if (i.inviter.getUniqueId().equals(inviter.getUniqueId()) && i.invited.getUniqueId().equals(player.getUniqueId())) return true;
+            }
+        }
+        return false;
+    }
+
+    public void accept(Player player, Player inviter) {
+        Invite data = null;
+        synchronized (inviteMapper) {
+            for (Invite i : inviteMapper) {
+                if (i.invited.getUniqueId().equals(player.getUniqueId()) && i.inviter.getUniqueId().equals(inviter.getUniqueId())) {
+                    data = i; break;
+                }
+            }
+        }
+        if (data == null) return;
+
+        Bukkit.getScheduler().cancelTask(data.taskId);
+        synchronized (inviteMapper) {
+            inviteMapper.remove(data);
+        }
+
+        ConnectFour.getGameManager().startGame(data.inviter, player);
+        ConnectFour.getTexter().response(data.inviter, LangManager.getStringPrefixed("invite_accept_other", java.util.Map.of("player", player.getName())), true, false);
+        ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("invite_accept_self"), true, false);
+    }
+
+    public void reject(Player player, Player inviter) {
+        Invite data = null;
+        synchronized (inviteMapper) {
+            for (Invite i : inviteMapper) {
+                if (i.invited.getUniqueId().equals(player.getUniqueId()) && i.inviter.getUniqueId().equals(inviter.getUniqueId())) {
+                    data = i; break;
+                }
+            }
+        }
+        if (data == null) return;
+
+        Bukkit.getScheduler().cancelTask(data.taskId);
+        synchronized (inviteMapper) {
+            inviteMapper.remove(data);
+        }
+
+        PlayerExtensions.ps(data.inviter, XSound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+        ConnectFour.getTexter().response(data.inviter, LangManager.getStringPrefixed("invite_reject_other", java.util.Map.of("player", player.getName())), true, false);
+        ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("invite_reject_self"), true, false);
+    }
+}
