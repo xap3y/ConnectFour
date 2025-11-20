@@ -276,7 +276,11 @@ public class RootCommand {
 
     private static Map<String, String> mapOf(String k1, String v1, String k2, String v2, String k3, String v3, String k4, String v4, String k5, String v5) {
         Map<String, String> m = new HashMap<>();
-        m.put(k1, v1); m.put(k2, v2); m.put(k3, v3); m.put(k4, v4); m.put(k5, v5);
+        m.put(k1, v1);
+        m.put(k2, v2);
+        m.put(k3, v3);
+        m.put(k4, v4);
+        m.put(k5, v5);
         return m;
     }
 
@@ -362,6 +366,9 @@ public class RootCommand {
                 return;
             }
         }
+
+        ConnectFour.getConfigLoader().saveDefaultPlayerData(player);
+        ConnectFour.getConfigLoader().saveDefaultPlayerData(p0);
 
         if (ConnectFour.getInviteManager().isInvitedBy(player, p0)) {
             ConnectFour.getInviteManager().accept(p0, player);

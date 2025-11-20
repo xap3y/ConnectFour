@@ -23,7 +23,7 @@ public class ConnectPlaceholderApi extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getVersion() {
-        return "1.4.0";
+        return "1.4.1";
     }
 
     @Override
@@ -53,6 +53,12 @@ public class ConnectPlaceholderApi extends PlaceholderExpansion {
             case "played": {
                 PlayerStatModel s = data.get(key);
                 return Integer.toString(s != null ? s.getGamesPlayed() : 0);
+            }
+
+
+            case "totalbet": {
+                PlayerStatModel s = data.get(key);
+                return Integer.toString(s != null ? s.getTotalBet() : 0);
             }
 
             case "winrate": {

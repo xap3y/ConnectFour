@@ -84,7 +84,6 @@ gui:
             - " "
             - "&7&l| &fEach player bet: &a{bet}$"
 invite:
-
     # Modify this if you are running CraftBukkit platform
     bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/c4 accept {player} &7to accept or &c/c4 reject {player} &7to reject"
 

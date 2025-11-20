@@ -122,6 +122,9 @@ public class ConfigLoader {
 
     public void savePlayerData(Player p0) {
         PlayerStatModel psm = data.get(p0.getUniqueId().toString());
+        if (psm == null) {
+            saveDefaultPlayerData(p0);
+        }
         String path = "players." + p0.getUniqueId() + ".";
         dataConfig.set(path + "name", p0.getName());
         dataConfig.set(path + "gamesPlayed", psm.getGamesPlayed());
@@ -136,7 +139,24 @@ public class ConfigLoader {
         } catch (IOException e) {
             ConnectFour.getTexter().console("&cCould not save player data for " + p0.getName() + "!");
         }
+    }
 
+    public void saveDefaultPlayerData(Player p0) {
+        String key = p0.getUniqueId().toString();
+        if (!data.containsKey(key)) {
+            data.put(key, new PlayerStatModel(
+                    p0.getUniqueId().toString(),
+                    p0.getName(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+            ));
+            savePlayerData(p0);
+        }
     }
 
     public void checkPlayer(Player player) {

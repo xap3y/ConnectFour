@@ -213,7 +213,8 @@ public class InviteManager {
         synchronized (inviteMapper) {
             for (Invite i : inviteMapper) {
                 if (i.invited.getUniqueId().equals(player.getUniqueId()) && i.inviter.getUniqueId().equals(inviter.getUniqueId())) {
-                    data = i; break;
+                    data = i;
+                    break;
                 }
             }
         }
@@ -243,7 +244,6 @@ public class InviteManager {
             ConnectFour.getInstance().getEconomy().withdrawPlayer(data.inviter, data.bet);
             ConnectFour.getInstance().getEconomy().withdrawPlayer(data.invited, data.bet);
 
-
             Invite finalData = data;
             Optional.ofNullable(ConnectFour.getConfigLoader().data.get(data.inviter.getUniqueId().toString())).ifPresent(it -> {
                 it.setTotalBet(it.getTotalBet() + finalData.bet);
@@ -254,7 +254,6 @@ public class InviteManager {
             });
 
             ConnectFour.getConfigLoader().savePlayerData(data.inviter);
-            ConnectFour.getConfigLoader().savePlayerData(data.invited);
             ConnectFour.getConfigLoader().savePlayerData(data.invited);
 
             data.inviter.sendMessage(Texter.colored(LangManager.getStringPrefixed("invite_accept_bet_withdraw", java.util.Map.of("bet", data.bet + ""))));
@@ -270,7 +269,8 @@ public class InviteManager {
         synchronized (inviteMapper) {
             for (Invite i : inviteMapper) {
                 if (i.invited.getUniqueId().equals(player.getUniqueId()) && i.inviter.getUniqueId().equals(inviter.getUniqueId())) {
-                    data = i; break;
+                    data = i;
+                    break;
                 }
             }
         }

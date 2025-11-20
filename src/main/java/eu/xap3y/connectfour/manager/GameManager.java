@@ -652,7 +652,10 @@ public class GameManager {
 
     private static class Pair {
         final int row, col;
-        Pair(int row, int col) { this.row = row; this.col = col; }
+        Pair(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
     }
 
     private static class PlayerModel {

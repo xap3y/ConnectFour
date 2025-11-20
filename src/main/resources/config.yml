@@ -12,6 +12,7 @@ hooks:
     placeholderAPI: true
 
     # Should the plugin hook into Vault for economy support?
+    # If set to false, betting feature will be disabled
     vault: true
 
 # Send bstats metrics
