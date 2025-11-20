@@ -24,6 +24,21 @@ invite_reject_self: "{prefix}&cYou have rejected the invitation!"
 move_timeout: "{prefix}&cPlayer &e{player} &ctook so long to make his move!"
 esp_confirm: "{prefix}&fPress escape key one more time to exit the game!"
 
+not_enough_money: "{prefix}&cYou don't have enough money to start the game!"
+invite_accept_no_money_target: "{prefix}&c{player} doesn't have enough money to start the game!"
+invite_accept_bet_withdraw: "{prefix}&a{bet}$ &fhas been withdrawn from your balance for the bet!"
+
+game_refund_other_cancel: "{prefix}&fThe opponent has cancelled the game. You got the pot of &a{pot}$&f!"
+game_refund_cancel: "{prefix}&fGame has been cancelled. &a{bet}$ &fhas been refunded to your balance!"
+game_lost_due_cancel: "{prefix}&cYou lost your &a{bet}$ &cbet because you cancelled the game!"
+
+won_bet: "{prefix}&fYou won the bet! You received &a{pot}$ &ffrom the pot!"
+draw_pot: "{prefix}&fThe game ended in a draw! You received &a{bet}$ &ffrom the pot!"
+lost_bet: "{prefix}&cYou lost the bet! You lost your &a{bet}$ &c!"
+
+max_bet: "{prefix}&cYou can't bet more than &a{max}$&c!"
+min_bet: "{prefix}&cYou can't bet less than &a{min}$&c!"
+
 # When one of the player exit out of game GUI
 game_closed: "{prefix}&cGame has been closed"
 
@@ -63,10 +78,15 @@ gui:
             - " "
             - "&7&l| &7Color: {color}"
 
+    pot:
+        name: "&6&lPot: &a{pot}$"
+        lore:
+            - " "
+            - "&7&l| &fEach player bet: &a{bet}$"
 invite:
 
     # Modify this if you are running CraftBukkit platform
-    bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/cf accept {player} &7to accept or &c/cf reject {player} &7to reject"
+    bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/c4 accept {player} &7to accept or &c/c4 reject {player} &7to reject"
 
     # If you dont want to use header or footer, simply remove them
     header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
@@ -120,3 +140,7 @@ stats:
         - " &e&l➢ &7Draws: &9{draws} &e&l⮘"
         - " &e&l➢ &7Win rate: &9{winrate}% &e&l⮘"
         - " &e&l➢ &7Games played: &9{gamesPlayed} &e&l⮘"
+        #- " &e&l➢ &7Total bet: &a{betsTotal}$ &e&l⮘"
+        #- " &e&l➢ &7Bets win rate: &9{betRate}% &e&l⮘"
+        #- " &e&l➢ &7Won from bets: &a{betsWon}$ &e&l⮘"
+        #- " &e&l➢ &7Lost from bets: &c{betsLost}$ &e&l⮘"

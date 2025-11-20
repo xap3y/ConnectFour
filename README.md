@@ -38,13 +38,14 @@ Supports any bukkit platform from 1.8 up to 1.21.10
 
 ## Commands
 
-`/cf` \
-`/cf invite <player>` \
-`/cf accept <player>` \
-`/cf reject <player>` \
-`/cf stats [player]` \
-`/cf leaderboard` \
-`/cf reload`
+`/c4` \
+`/c4 invite <player> [bet]` \
+`/c4 bet <player> <bet>` \
+`/c4 accept <player>` \
+`/c4 reject <player>` \
+`/c4 stats [player]` \
+`/c4 leaderboard` \
+`/c4 reload`
 
 ## Placeholders
 Supports PlaceholderAPI and miniPlaceholers

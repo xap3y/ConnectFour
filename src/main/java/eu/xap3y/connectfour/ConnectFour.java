@@ -2,6 +2,7 @@ package eu.xap3y.connectfour;
 
 import eu.xap3y.connectfour.api.model.ConfigModel;
 import eu.xap3y.connectfour.command.RootCommand;
+import eu.xap3y.connectfour.listener.PlayerQuitListener;
 import eu.xap3y.connectfour.manager.*;
 import eu.xap3y.connectfour.service.Texter;
 import eu.xap3y.connectfour.util.RequestHttp;
@@ -9,12 +10,15 @@ import eu.xap3y.connectfour.util.hooks.ConnectPlaceholderApi;
 import eu.xap3y.xagui.XaGui;
 import lombok.Getter;
 import lombok.Setter;
+import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,7 +40,7 @@ public final class ConnectFour extends JavaPlugin {
     public static final String VERSION_UPSTREAM_URL = "https://raw.githubusercontent.com/xap3y/ConnectFour/main/VER";
     public static int totalGames = 0;
     public static int totalDraws = 0;
-    public static final String VERSION = "1.3.0";
+    public static final String VERSION = "1.4.0";
     public static String language = "en";
 
     @Getter
@@ -60,6 +64,9 @@ public final class ConnectFour extends JavaPlugin {
 
     @Getter
     private final Set<Player> openedGuis = Collections.synchronizedSet(new HashSet<>());
+
+    @Getter
+    private Economy economy = null;
 
     @Override
     public void onEnable() {
@@ -89,7 +96,7 @@ public final class ConnectFour extends JavaPlugin {
 
         if (configModel.isUpdates()) {
             RequestHttp.isNewest().whenComplete((result, ex) -> {
-                if (ex != null) {
+                if (ex != null || result.latestVersion() == null) {
                     texter.console("Could not check for updates!");
                     return;
                 }
@@ -101,7 +108,7 @@ public final class ConnectFour extends JavaPlugin {
         }
 
         LangManager.reload();
-
+        LangManager.checkDefaults();
         //  Registering PlaceholderAPI  \\
         if (configModel.isHookPapi()) {
             registerPapi();
@@ -110,6 +117,21 @@ public final class ConnectFour extends JavaPlugin {
         if (configModel.isHookMiniPlaceholders()) {
             registerMini();
         }
+
+        BukkitRunnable economySetup = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (economy == null) {
+                    setupEconomy();
+                } else {
+                    this.cancel();
+                }
+            }
+        };
+
+        economySetup.runTaskTimerAsynchronously(this, 60L, 20L * 60L * 5L);
+
+        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
     }
 
     @Override
@@ -120,6 +142,19 @@ public final class ConnectFour extends JavaPlugin {
             }
             openedGuis.clear();
         }
+    }
+
+    private void setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            texter.console("&cVault not found!");
+            return;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            texter.console("&cVault rsp error (economy)! &8No economy plugin found?");
+            return;
+        }
+        economy = rsp.getProvider();
     }
 
     private void registerPapi() {

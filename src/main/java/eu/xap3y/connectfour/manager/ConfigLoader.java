@@ -28,6 +28,21 @@ public class ConfigLoader {
         ConnectFour.getInstance().reloadConfig();
         FileConfiguration cfg = ConnectFour.getInstance().getConfig();
 
+        if (!cfg.contains("hooks.vault")) {
+            cfg.set("hooks.vault", false);
+            ConnectFour.getInstance().saveConfig();
+        }
+
+        if (!cfg.contains("bets.min")) {
+            cfg.set("bets.min", 0);
+            ConnectFour.getInstance().saveConfig();
+        }
+
+        if (!cfg.contains("bets.max")) {
+            cfg.set("bets.max", 1000000);
+            ConnectFour.getInstance().saveConfig();
+        }
+
         LangManager.prefix = cfg.getString("prefix", "&8[&6ConnectFour&8] &7");
         ConnectFour.language = cfg.getString("lang", "en");
 
@@ -46,6 +61,7 @@ public class ConfigLoader {
                 cfg.getStringList("winRewards.commands"),
                 cfg.getBoolean("hooks.placeholderAPI", true),
                 cfg.getBoolean("hooks.miniPlaceholders", false),
+                cfg.getBoolean("hooks.vault", false),
                 cfg.getBoolean("metrics", true),
                 cfg.getBoolean("updateCheck", true),
                 cfg.getBoolean("doubleEscape", true),
@@ -85,7 +101,10 @@ public class ConfigLoader {
                     dataConfig.getInt(path + "gamesPlayed", 0),
                     dataConfig.getInt(path + "wins", 0),
                     dataConfig.getInt(path + "losses", 0),
-                    dataConfig.getInt(path + "draws", 0)
+                    dataConfig.getInt(path + "draws", 0),
+                    dataConfig.getInt(path + "bets.totalbet", 0),
+                    dataConfig.getInt(path + "bets.won", 0),
+                    dataConfig.getInt(path + "bets.lost", 0)
             );
             data.put(key, psm);
         }
@@ -109,6 +128,9 @@ public class ConfigLoader {
         dataConfig.set(path + "wins", psm.getWins());
         dataConfig.set(path + "losses", psm.getLosses());
         dataConfig.set(path + "draws", psm.getDraws());
+        dataConfig.set(path + "bets.totalbet", psm.getTotalBet());
+        dataConfig.set(path + "bets.won", psm.getTotalWon());
+        dataConfig.set(path + "bets.lost", psm.getTotalLost());
         try {
             dataConfig.save(dataFile);
         } catch (IOException e) {
@@ -123,6 +145,9 @@ public class ConfigLoader {
             data.put(key, new PlayerStatModel(
                     player.getUniqueId().toString(),
                     player.getName(),
+                    0,
+                    0,
+                    0,
                     0,
                     0,
                     0,

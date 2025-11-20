@@ -11,7 +11,8 @@ hooks:
     # If set to true, and PlaceholderAPI is not installed, the plugin will still work
     placeholderAPI: true
 
-    miniPlaceholders: false
+    # Should the plugin hook into Vault for economy support?
+    vault: true
 
 # Send bstats metrics
 metrics: true
@@ -44,3 +45,7 @@ winRewards:
     commands:
         - "eco give %player% 1000"
         - "give %player% diamond 1"
+
+bets:
+    min: 0
+    max: 1000000

@@ -16,6 +16,7 @@ public class ConfigModel {
     private List<String> winRewards;
     private boolean hookPapi;
     private boolean hookMiniPlaceholders;
+    private boolean hookVault;
     private boolean metrics;
     private boolean updates;
     private boolean doubleEscape;

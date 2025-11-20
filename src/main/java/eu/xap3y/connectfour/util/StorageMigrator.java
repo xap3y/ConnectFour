@@ -63,7 +63,7 @@ public final class StorageMigrator {
                     if (p == null || p.getUuid() == null) continue;
                     byUuid.merge(
                             p.getUuid(),
-                            new PlayerStatModel(p.getUuid(), p.getName(), p.getGamesPlayed(), p.getWins(), p.getLosses(), p.getDraws()),
+                            new PlayerStatModel(p.getUuid(), p.getName(), p.getGamesPlayed(), p.getWins(), p.getLosses(), p.getDraws(), 0, 0, 0),
                             (a, b) -> {
                                 // aggregate counts; prefer latest non-null name
                                 a.setName(b.getName() != null ? b.getName() : a.getName());
@@ -126,7 +126,7 @@ public final class StorageMigrator {
                 if (p == null || p.getUuid() == null) continue;
                 byUuid.merge(
                         p.getUuid(),
-                        new PlayerStatModel(p.getUuid(), p.getName(), p.getWins(), p.getLosses(), p.getDraws(), p.getGamesPlayed()),
+                        new PlayerStatModel(p.getUuid(), p.getName(), p.getWins(), p.getLosses(), p.getDraws(), p.getGamesPlayed(), 0, 0, 0),
                         (a, b) -> {
                             a.setName(b.getName() != null ? b.getName() : a.getName());
                             a.setWins(a.getWins() + b.getWins());

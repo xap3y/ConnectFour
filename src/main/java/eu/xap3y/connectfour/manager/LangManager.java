@@ -10,7 +10,76 @@ public class LangManager {
 
     private static YamlConfiguration lang;
     private static final Set<String> defaults = new HashSet<>(Arrays.asList("cz", "en"));
+
+    private static final Map<String, String> checkStrings = new HashMap<>() {{
+        put("not_enough_money", "{prefix}&cYou don't have enough money to start the game!");
+        put("invite_accept_no_money_target", "{prefix}&c{player} doesn't have enough money to start the game!");
+        put("invite_accept_bet_withdraw", "{prefix}&a{bet}$ &fhas been withdrawn from your balance for the bet!");
+        put("gui.pot.name", "&6&lPot: &a{pot}$");
+        put("game_refund_other_cancel", "{prefix}&fThe opponent has cancelled the game. You got the pot of &a{bet}$&f!");
+        put("game_refund_cancel", "{prefix}&fGame has been cancelled. &a{bet}$ &fhas been refunded to your balance!");
+        put("game_lost_due_cancel", "{prefix}&cYou lost your &a{bet}$ &cbet because you cancelled the game!");
+        put("won_bet", "{prefix}&fYou won the bet! You received &a{pot}$ &ffrom the pot!");
+        put("draw_pot", "{prefix}&fThe game ended in a draw! You received &a{bet}$ &ffrom the pot!");
+        put("lost_bet", "{prefix}&cYou lost the bet! You lost your &a{bet}$ &cbet!");
+        put("max_bet", "{prefix}&cYou can't bet more than &a{max}$&c!");
+        put("min_bet", "{prefix}&cYou can't bet less than &a{min}$&c!");
+    }};
+
+    private static final Map<String, List<String>> checkStringsList = new HashMap<>() {{
+        put("gui.pot.lore", Arrays.asList(
+                " ",
+                "&7&l| &fEach player bet: &a{bet}$"
+        ));
+    }};
+
     public static String prefix = "";
+
+    public static void checkDefaults() {
+        for (String d : defaults) checkFile(d);
+
+        for (String d : defaults) {
+            File file = new File(ConnectFour.getInstance().getDataFolder(), "lang/messages_" + d + ".yml");
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+            boolean changed = false;
+            for (Map.Entry<String, String> entry : checkStrings.entrySet()) {
+                if (config.getString(entry.getKey()) == null) {
+                    config.set(entry.getKey(), entry.getValue());
+                    changed = true;
+                }
+            }
+            if (changed) {
+                try {
+                    config.save(file);
+                } catch (IOException ignored) { }
+            }
+        }
+
+        checkDefaultsLists();
+    }
+
+    public static void checkDefaultsLists() {
+        for (String d : defaults) checkFile(d);
+
+        for (String d : defaults) {
+            File file = new File(ConnectFour.getInstance().getDataFolder(), "lang/messages_" + d + ".yml");
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+            boolean changed = false;
+            for (Map.Entry<String, List<String>> entry : checkStringsList.entrySet()) {
+                if (config.getStringList(entry.getKey()).isEmpty()) {
+                    config.set(entry.getKey(), entry.getValue());
+                    changed = true;
+                }
+            }
+            if (changed) {
+                try {
+                    config.save(file);
+                } catch (IOException ignored) { }
+            }
+        }
+
+        reload();
+    }
 
     public static void reload() {
         for (String d : defaults) checkFile(d);

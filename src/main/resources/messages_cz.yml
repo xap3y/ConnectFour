@@ -24,6 +24,21 @@ invite_reject_self: "{prefix}&cOdmítl jsi pozvánku!"
 move_timeout: "{prefix}&cHráč &e{player} &cnestihl udělat svůj tah včas!"
 esp_confirm: "{prefix}&fPro ukončení hry odejdi z menu ještě jednou!"
 
+not_enough_money: "{prefix}&cNemáš dostatek peněz pro start hry!"
+invite_accept_no_money_target: "{prefix}&c{player} nemá dostatek peněz pro start hry!"
+invite_accept_bet_withdraw: "{prefix}&fBylo ti strženo &a{bet}$ &fpro start hry!"
+
+game_refund_other_cancel: "{prefix}&fProtihráč ukončil hru. Získal jsi &a{pot}$&f!"
+game_refund_cancel: "{prefix}&fHra byla ukončena. &fBylo ti vráceno &a{bet}$&f!"
+game_lost_due_cancel: "{prefix}&cProhrál jsi svou sázku &a{bet}$ &cprotože jsi ukončil hru!"
+
+won_bet: "{prefix}&fVyhrál jsi sázku! Získal jsi &a{pot}$ &f!"
+draw_pot: "{prefix}&fHra skončila remízou! Získal jsi zpět svou sázku &a{bet}$ &f!"
+lost_bet: "{prefix}&cProhrál jsi sázku &a{bet}$ &c!"
+
+max_bet: "{prefix}&cNemůžeš vsadit víc jak &a{max}$&c!"
+min_bet: "{prefix}&cNemůžeš vsadit méně jako &a{min}$&c!"
+
 # Když jeden z hráču zavře GUI během hry
 game_closed: "{prefix}&cHra byla ukončena!"
 
@@ -63,10 +78,16 @@ gui:
             - " "
             - "&7&l| &7Barva: {color}"
 
+    pot:
+        name: "&6&lSázky: &a{pot}$"
+        lore:
+            - " "
+            - "&7&l| &fKaždý hráč vsadil: &a{bet}$"
+
 invite:
 
     # Tohle uprav jen pokud máš CraftBukkit platformu
-    bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/cf accept {player} &7to accept or &c/cf reject {player} &7to reject"
+    bukkit_invite: "&aYou have been invited to a game by &e{player}&7. Type &a/c4 accept {player} &7to accept or &c/c4 reject {player} &7to reject"
 
     # Pokud nechceš použít záhlaví nebo zápatí tak to prostě odeber
     header: "&a&m-+-----------------&r&a[&bConnectFour&a]&a&m-----------------+-"
@@ -120,3 +141,7 @@ stats:
         - " &e&l➢ &7Remíz: &9{draws} &e&l⮘"
         - " &e&l➢ &7Win rate: &9{winrate}% &e&l⮘"
         - " &e&l➢ &7Odehráno her: &9{gamesPlayed} &e&l⮘"
+        #- " &e&l➢ &7Prosázeno: &a{betsTotal}$ &e&l⮘"
+        #- " &e&l➢ &7Sázková úspěšnost: &9{betRate}% &e&l⮘"
+        #- " &e&l➢ &7Celkem vyhráno: &a{betsWon}$ &e&l⮘"
+        #- " &e&l➢ &7Celkem prohráno: &c{betsLost}$ &e&l⮘"

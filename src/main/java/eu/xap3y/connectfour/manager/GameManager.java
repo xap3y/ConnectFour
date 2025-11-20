@@ -8,6 +8,7 @@ import eu.xap3y.connectfour.api.model.StaticItems;
 import eu.xap3y.connectfour.service.Texter;
 import eu.xap3y.connectfour.util.PlayerExtensions;
 import eu.xap3y.xagui.GuiMenu;
+import eu.xap3y.xagui.interfaces.GuiMenuInterface;
 import eu.xap3y.xagui.models.GuiButton;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -24,6 +25,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class GameManager {
 
     private static final Map<UUID, PlayerModel> playerMapper = new HashMap<>();
+    private static final Map<UUID, Integer> bets = new HashMap<>();
 
     private final ConnectFour plugin;
     private final ConcurrentHashMap<Player, Player> playingPlayers = new ConcurrentHashMap<>();
@@ -45,7 +47,84 @@ public class GameManager {
         return playingPlayers.containsKey(player) || playingPlayers.containsValue(player);
     }
 
-    public void startGame(Player player, Player opponent) {
+    // Cancel game due to player quit
+    public void cancelGame(Player quitPlayer, boolean refundBoth) {
+
+        if (!isPlaying(quitPlayer)) return;
+
+        Player opponent = playingPlayers.get(quitPlayer);
+        if (opponent == null) {
+            // Find the opponent if quitPlayer is the opponent
+            for (Map.Entry<Player, Player> entry : playingPlayers.entrySet()) {
+                if (entry.getValue().equals(quitPlayer)) {
+                    opponent = entry.getKey();
+                    break;
+                }
+            }
+        }
+
+        if (opponent != null && opponent.isOnline()) {
+            if (refundBoth) ConnectFour.getTexter().response(opponent, "&cYour opponent left the game, bets were refunded.", true, true);
+            else {
+                if (bets.containsKey(opponent.getUniqueId()) && bets.get(opponent.getUniqueId()) != null && bets.get(opponent.getUniqueId()) > 0) {
+                    ConnectFour.getTexter().response(opponent, LangManager.getStringPrefixed("game_refund_other_cancel", mapOf("pot", String.valueOf(bets.get(opponent.getUniqueId()) * 2))), true, false);
+                } else {
+                    ConnectFour.getTexter().response(opponent, "&aYour opponent left the game, you won the game!", true, true);
+                }
+
+            }
+            PlayerExtensions.ps(opponent, XSound.BLOCK_ANVIL_LAND, 1.0f, 1.0f);
+        }
+
+        playingPlayers.remove(quitPlayer);
+        if (opponent != null) {
+            playingPlayers.remove(opponent);
+        }
+        playerMapper.remove(quitPlayer.getUniqueId());
+        if (opponent != null) {
+            playerMapper.remove(opponent.getUniqueId());
+        }
+        exitingPlayers.remove(quitPlayer.getUniqueId());
+        if (opponent != null) {
+            exitingPlayers.remove(opponent.getUniqueId());
+        }
+
+        if (opponent != null) {
+
+            Player finalOpponent = opponent;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                finalOpponent.closeInventory();
+            });
+            if (refundBoth) {
+                if (bets.containsKey(finalOpponent.getUniqueId())) {
+                    Integer bet = bets.get(finalOpponent.getUniqueId());
+                    if (bet != null && bet > 0 && ConnectFour.getInstance().getEconomy() != null) {
+                        ConnectFour.getInstance().getEconomy().depositPlayer(finalOpponent, bet);
+                    }
+                    bets.remove(finalOpponent.getUniqueId());
+                }
+                if (bets.containsKey(quitPlayer.getUniqueId())) {
+                    Integer bet = bets.get(quitPlayer.getUniqueId());
+                    if (bet != null && bet > 0 && ConnectFour.getInstance().getEconomy() != null) {
+                        ConnectFour.getInstance().getEconomy().depositPlayer(quitPlayer, bet);
+                    }
+                    bets.remove(quitPlayer.getUniqueId());
+                }
+            } else {
+                bets.remove(quitPlayer.getUniqueId());
+                if (bets.containsKey(finalOpponent.getUniqueId())) {
+                    Integer bet = bets.get(finalOpponent.getUniqueId());
+                    if (bet != null && bet > 0 && ConnectFour.getInstance().getEconomy() != null) {
+                        ConnectFour.getInstance().getEconomy().depositPlayer(finalOpponent, bet*2);
+                    }
+                    bets.remove(finalOpponent.getUniqueId());
+                }
+            }
+        }
+
+    }
+
+    public void startGame(Player player, Player opponent, Integer bet) {
         boolean ignoreEscKey = false;
         int onMove; // 0 - player, 1 - opponent | 0 - red, 1 - yellow
         boolean end = false;
@@ -56,6 +135,9 @@ public class GameManager {
 
         playingPlayers.put(player, opponent);
 
+        bets.put(player.getUniqueId(), bet);
+        bets.put(opponent.getUniqueId(), bet);
+
         int randomNum = ThreadLocalRandom.current().nextInt(0, 2); // 0 or 1
         boolean isFirstRed = randomNum == 0;
 
@@ -63,7 +145,11 @@ public class GameManager {
         ConnectFour.getConfigLoader().checkPlayer(opponent);
 
         // Create GUI
-        String title = Optional.ofNullable(LangManager.getString("gui.title")).orElse("&6&lConnectFour");
+        String additionTitle = "";
+        if (bet != null && bet > 0) {
+            additionTitle = " &7(&fPOT: &a" + bet*2 + "$&7)";
+        }
+        String title = Optional.ofNullable(LangManager.getString("gui.title")).orElse("&6&lConnectFour") + additionTitle;
         GuiMenu gui = ConnectFour.getXagui().createMenu(title, 6);
 
         String yellowName = Optional.ofNullable(LangManager.getString("gui.yellow")).orElse("&eYellow");
@@ -73,8 +159,7 @@ public class GameManager {
         gridMapper.put(gameId, new int[6][7]);
 
         // Static border (frame)
-        Set<Integer> border = Set.of(26, 35, 7, 52);
-        gui.fillSlots(gui.getCurrentPageIndex(), border, new GuiButton(StaticItems.borderPane).setName(" "));
+        gui.fillSlots(gui.getCurrentPageIndex(), new GuiButton(StaticItems.borderPane).setName(" "), 26, 35, 7, 52);
 
         // Player head
         ItemStack skullPlayer = Optional.ofNullable(XMaterial.PLAYER_HEAD.parseItem()).orElse(new ItemStack(Material.PLAYER_HEAD, 1));
@@ -117,6 +202,20 @@ public class GameManager {
         gui.setSlot(53, new GuiButton((!isFirstRed ? StaticItems.redPane.clone() : StaticItems.yellowPane.clone()))
                 .addItemFlag(ItemFlag.HIDE_ENCHANTS));
 
+        // Show pot amount with a gold bar if there is a bet
+        if (bet != null && bet > 0) {
+            int pot = bet * 2;
+            ItemStack gold = Optional.ofNullable(XMaterial.GOLD_INGOT.parseItem()).orElse(new ItemStack(Material.GOLD_INGOT, 1));
+            String potName = Optional.ofNullable(LangManager.getStringPrefixed("gui.pot.name", mapOf("pot", String.valueOf(pot))))
+                    .orElse(Texter.colored("&6&lPot: &e" + pot));
+            List<String> potLore = Optional.ofNullable(LangManager.getListPrefixed("gui.pot.lore", mapOf("pot", String.valueOf(pot), "bet", String.valueOf(bet))))
+                    .orElse(Arrays.asList(
+                            Texter.colored("&7Each player bet: &6" + bet),
+                            Texter.colored("&7Total pot: &e" + pot)
+                    ));
+            gui.setSlot(52, new GuiButton(gold).setName(potName).setLoreList(potLore));
+        }
+
         // Map players to model
         playerMapper.put(player.getUniqueId(), new PlayerModel((randomNum == 0) ? 0 : 1, 0, isFirstRed, 8));
         playerMapper.put(opponent.getUniqueId(), new PlayerModel((randomNum == 0) ? 1 : 0, 0, !isFirstRed, 53));
@@ -147,21 +246,37 @@ public class GameManager {
         final boolean[] endRef = {end};
 
         gui.setOnClose(event -> {
-            if (ConnectFour.getConfigModel().isDoubleEscape() && !exitingPlayers.contains(event.getPlayer().getUniqueId()) && !ignoreEscKeyRef[0]) {
+            if (ConnectFour.getConfigModel().isDoubleEscape() && !exitingPlayers.contains(event.getPlayer().getUniqueId()) && !ignoreEscKeyRef[0] && player.isOnline() && opponent.isOnline()) {
                 Player p = (Player) event.getPlayer();
                 if (p.isOnline()) {
                     exitingPlayers.add(p.getUniqueId());
                     ConnectFour.getTexter().response(p, LangManager.getStringPrefixed("esp_confirm"), true, false);
                     Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> exitingPlayers.remove(p.getUniqueId()), 30L);
                     Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> gui.open(p), 5L);
+                    return;
                 }
-                return;
             } else if (ConnectFour.getConfigModel().isDoubleEscape() && exitingPlayers.contains(event.getPlayer().getUniqueId())) {
                 ignoreEscKeyRef[0] = true;
             }
 
             if (oneClose[0]) return;
             oneClose[0] = true;
+
+            if (player.isOnline() && opponent.isOnline()) {
+                if (bet != null && bet > 0 && !endRef[0] && totalMoves[0] > 1) {
+                    // Get the opposite player who did not close the GUI
+                    Player refundTo = (event.getPlayer().getUniqueId().equals(player.getUniqueId())) ? this.playingPlayers.get(player) : player;
+                    ConnectFour.getInstance().getEconomy().depositPlayer(refundTo, bet*2);
+                    ConnectFour.getTexter().response(refundTo, LangManager.getStringPrefixed("game_refund_other_cancel", mapOf("pot", String.valueOf(bet*2))), true, false);
+                    ConnectFour.getTexter().response(event.getPlayer(), LangManager.getStringPrefixed("game_lost_due_cancel", mapOf("bet", String.valueOf(bet))), true, false);
+                } else if (bet != null && bet > 0 && !endRef[0]) {
+                    // Refund bet if no moves were made
+                    ConnectFour.getInstance().getEconomy().depositPlayer(player, bet);
+                    ConnectFour.getInstance().getEconomy().depositPlayer(opponent, bet);
+                    ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("game_refund_cancel", mapOf("bet", String.valueOf(bet))), true, false);
+                    ConnectFour.getTexter().response(opponent, LangManager.getStringPrefixed("game_refund_cancel", mapOf("bet", String.valueOf(bet))), true, false);
+                }
+            }
 
             plugin.getOpenedGuis().remove(player);
             plugin.getOpenedGuis().remove(opponent);
@@ -182,6 +297,8 @@ public class GameManager {
             gridMapper.remove(gameId);
             exitingPlayers.remove(player.getUniqueId());
             exitingPlayers.remove(opponent.getUniqueId());
+            bets.remove(player.getUniqueId());
+            bets.remove(opponent.getUniqueId());
 
             Integer t1 = timeToMove.get(opponent.getUniqueId());
             if (t1 != null) Bukkit.getScheduler().cancelTask(t1);
@@ -302,18 +419,40 @@ public class GameManager {
 
                 List<List<Pair>> win = findWinningPatterns(gameId, playerNumber + 1);
                 if (totalMoves[0] < 42 && win == null) {
+                    // Continue game
                     switchMove(gui, onMoveRef[0], nextPlayer.getName());
                     setGlow(gui, onMoveRef[0]);
                     return;
                 } else if (totalMoves[0] > 41 && win == null) {
+                    // DRAW
                     Integer t1 = timeToMove.get(opponent.getUniqueId());
                     if (t1 != null) Bukkit.getScheduler().cancelTask(t1);
                     Integer t2 = timeToMove.get(player.getUniqueId());
                     if (t2 != null) Bukkit.getScheduler().cancelTask(t2);
+                    bets.remove(player.getUniqueId());
+                    bets.remove(opponent.getUniqueId());
                     endRef[0] = true;
-                    gui.fillSlots(gui.getCurrentPageIndex(), Set.of(16, 25, 34, 43),
-                            new GuiButton(StaticItems.orangePane.clone()).setName(Optional.ofNullable(LangManager.getString("gui.draw")).orElse("&6&lDRAW"))
+                    gui.fillSlots(gui.getCurrentPageIndex(),
+                            new GuiButton(StaticItems.orangePane.clone()).setName(Optional.ofNullable(LangManager.getString("gui.draw")).orElse("&6&lDRAW")), 16, 25, 34, 43
                     );
+
+                    if (bet != null && bet > 0) {
+                        if (ConnectFour.getInstance().getEconomy() != null) {
+                            ConnectFour.getInstance().getEconomy().depositPlayer(player, bet);
+                            ConnectFour.getInstance().getEconomy().depositPlayer(opponent, bet);
+
+                            Map<String, String> map = mapOf(
+                                    "bet", String.valueOf(bet),
+                                    "pot", String.valueOf(bet*2)
+                            );
+
+                            String text = LangManager.getStringPrefixed("draw_pot", map);
+
+                            ConnectFour.getTexter().response(player, text, true, false);
+                            ConnectFour.getTexter().response(opponent, text, true, false);
+                        }
+                    }
+
                     // stats: draws
                     ConnectFour.totalDraws++;
                     Optional.ofNullable(ConnectFour.getConfigLoader().data.get(player.getUniqueId().toString())).ifPresent(it -> {
@@ -327,12 +466,32 @@ public class GameManager {
                     ConnectFour.getConfigLoader().savePlayerData(opponent);
                     ConnectFour.getConfigLoader().savePlayerData(player);
                 } else {
+                    // WIN
                     Integer t1 = timeToMove.get(opponent.getUniqueId());
                     if (t1 != null) Bukkit.getScheduler().cancelTask(t1);
                     Integer t2 = timeToMove.get(player.getUniqueId());
                     if (t2 != null) Bukkit.getScheduler().cancelTask(t2);
                     endRef[0] = true;
                     ignoreEscKeyRef[0] = true;
+
+                    bets.remove(player.getUniqueId());
+                    bets.remove(opponent.getUniqueId());
+
+                    if (bet != null && bet > 0) {
+                        if (ConnectFour.getInstance().getEconomy() != null) {
+                            ConnectFour.getInstance().getEconomy().depositPlayer(clicker, bet*2);
+
+                            Map<String, String> map = mapOf(
+                                    "bet", String.valueOf(bet),
+                                    "pot", String.valueOf(bet*2)
+                            );
+
+                            Player opposite = clicker.getUniqueId().equals(player.getUniqueId()) ? opponent : player;
+
+                            ConnectFour.getTexter().response(clicker, LangManager.getStringPrefixed("won_bet", map), true, false);
+                            ConnectFour.getTexter().response(opposite, LangManager.getStringPrefixed("lost_bet", map), true, false);
+                        }
+                    }
 
                     for (List<Pair> rows : win) {
                         for (Pair p : rows) {
@@ -348,11 +507,17 @@ public class GameManager {
                     Optional.ofNullable(ConnectFour.getConfigLoader().data.get(clicker.getUniqueId().toString())).ifPresent(it -> {
                         it.setGamesPlayed(it.getGamesPlayed() + 1);
                         it.setWins(it.getWins() + 1);
+                        if (bet != null && bet > 0) {
+                            it.setTotalWon(it.getTotalBet() + bet);
+                        }
                     });
 
                     Optional.ofNullable(ConnectFour.getConfigLoader().data.get(nextPlayer.getUniqueId().toString())).ifPresent(it -> {
                         it.setGamesPlayed(it.getGamesPlayed() + 1);
                         it.setLosses(it.getLosses() + 1);
+                        if (bet != null && bet > 0) {
+                            it.setTotalLost(it.getTotalLost() + bet);
+                        }
                     });
 
                     ConnectFour.getConfigLoader().savePlayerData(opponent);
@@ -369,8 +534,8 @@ public class GameManager {
                         });
                     }
 
-                    gui.fillSlots(gui.getCurrentPageIndex(), Set.of(16, 25, 34, 43),
-                            new GuiButton(StaticItems.borderPane.clone()).setName("&a&l►")
+                    gui.fillSlots(gui.getCurrentPageIndex(),
+                            new GuiButton(StaticItems.borderPane.clone()).setName("&a&l►"), 16, 25, 34, 43
                     );
 
                     int paneSlot = Optional.ofNullable(playerMapper.get(clicker.getUniqueId()))

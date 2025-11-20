@@ -1,21 +1,20 @@
 package eu.xap3y.connectfour.command;
 
 import eu.xap3y.connectfour.ConnectFour;
+import eu.xap3y.connectfour.api.model.PlayerStatModel;
 import eu.xap3y.connectfour.manager.LangManager;
 import eu.xap3y.connectfour.service.Texter;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.Command;
-import org.incendo.cloud.annotations.CommandDescription;
-import org.incendo.cloud.annotations.Permission;
+import org.incendo.cloud.annotation.specifier.Range;
+import org.incendo.cloud.annotations.*;
 
 import java.util.*;
 
 public class RootCommand {
 
-    @Command("connectfour|cf")
+    @Command("connectfour|cf|c4")
     @CommandDescription("Connect Four main command")
     public void root(CommandSender sender) {
         String header = LangManager.getString("help.header");
@@ -29,14 +28,14 @@ public class RootCommand {
         if (entry == null) entry = " &9&l➢ &7{command} &8- &f{description}";
 
         Map<String, String> commandMap = new LinkedHashMap<>();
-        commandMap.put("/cf stats [player]", Optional.ofNullable(LangManager.getString("help.descriptions.stats")).orElse("View stats"));
-        commandMap.put("/cf leaderboard", Optional.ofNullable(LangManager.getString("help.descriptions.leaderboard")).orElse("View leaderboard"));
-        commandMap.put("/cf invite <player>", Optional.ofNullable(LangManager.getString("help.descriptions.invite")).orElse("Invite a player"));
-        commandMap.put("/cf accept <player>", Optional.ofNullable(LangManager.getString("help.descriptions.accept")).orElse("Accept an invite"));
-        commandMap.put("/cf reject <player>", Optional.ofNullable(LangManager.getString("help.descriptions.reject")).orElse("Reject an invite"));
+        commandMap.put("/c4 stats [player]", Optional.ofNullable(LangManager.getString("help.descriptions.stats")).orElse("View stats"));
+        commandMap.put("/c4 leaderboard", Optional.ofNullable(LangManager.getString("help.descriptions.leaderboard")).orElse("View leaderboard"));
+        commandMap.put("/c4 invite <player>", Optional.ofNullable(LangManager.getString("help.descriptions.invite")).orElse("Invite a player"));
+        commandMap.put("/c4 accept <player>", Optional.ofNullable(LangManager.getString("help.descriptions.accept")).orElse("Accept an invite"));
+        commandMap.put("/c4 reject <player>", Optional.ofNullable(LangManager.getString("help.descriptions.reject")).orElse("Reject an invite"));
 
         Map<String, String> adminCommandMap = new LinkedHashMap<>();
-        adminCommandMap.put("/cf reload", Optional.ofNullable(LangManager.getString("help.descriptions.reload")).orElse("Reload the config"));
+        adminCommandMap.put("/c4 reload", Optional.ofNullable(LangManager.getString("help.descriptions.reload")).orElse("Reload the config"));
 
         for (Map.Entry<String, String> e : commandMap.entrySet()) {
             list.add(entry.replace("{command}", e.getKey()).replace("{description}", e.getValue()));
@@ -53,38 +52,66 @@ public class RootCommand {
         for (String line : list) ConnectFour.getTexter().response(sender, line, true, false);
     }
 
-    @Command("connectfour|cf stats [player]")
+    /*@Command("connectfour|cf|c4 bet [player] [amount]")
+    @CommandDescription("Connect Four bet command")
+    public void bet(
+            CommandSender sender,
+            @Argument("player") Player player,
+            @Argument("amount") @Range(min = "0") Integer amount
+    ) {
+        ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("bet_not_implemented"), true, false);
+    }*/
+
+    @Command("connectfour|cf|c4 stats [player]")
     @CommandDescription("Connect Four stats command")
     public void stats(CommandSender sender, @Argument("player") OfflinePlayer player) {
         if (player == null && !(sender instanceof Player)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/cf stats <player>")), true, false);
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/c4 stats <player>")), true, false);
             return;
         }
 
-        Object stats = ConnectFour.getConfigLoader().getPlayerStats(player != null ? player : (Player) sender);
+
+        PlayerStatModel stats = ConnectFour.getConfigLoader().getPlayerStats(player != null ? player : (Player) sender);
         if (stats == null) {
             ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("no_stats_found_player"), true, false);
             return;
         }
 
-        // Assuming a stats model with getters: getWins(), getLosses(), getDraws(), getGamesPlayed(), getName()
-        int wins = getInt(stats, "wins");
-        int losses = getInt(stats, "losses");
-        int draws = getInt(stats, "draws");
-        int gamesPlayed = getInt(stats, "gamesPlayed");
+        int wins = stats.getWins();
+        int losses = stats.getLosses();
+        int draws = stats.getDraws();
+        int gamesPlayed = stats.getGamesPlayed();
+
+        int betsTotal = stats.getTotalBet();
+        int betsWon = stats.getTotalWon();
+        int betsLost = stats.getTotalLost();
+
+        int betRate = (betsTotal == 0) ? 0 : (int) (betsWon * 100.0 / betsTotal);
+        if (betRate > 100) betRate = 100;
+        else if (betRate < 0) betRate = 0;
 
         int winRate = (gamesPlayed == 0) ? 0 : (int) (wins * 100.0 / gamesPlayed);
+        if (winRate > 100) winRate = 100;
+        else if (winRate < 0) winRate = 0;
 
         String header = LangManager.getString("stats.header");
         String footer = LangManager.getString("stats.footer");
 
-        List<String> list = new ArrayList<>(LangManager.getListPrefixed("stats.list", mapOf(
-                "wins", Integer.toString(wins),
-                "losses", Integer.toString(losses),
-                "draws", Integer.toString(draws),
-                "winrate", Integer.toString(winRate),
-                "gamesPlayed", Integer.toString(gamesPlayed)
-        )));
+        int finalWinRate = winRate;
+        int finalBetRate = betRate;
+        Map<String, String> placeholders = new HashMap<>() {{
+            put("wins", Integer.toString(wins));
+            put("losses", Integer.toString(losses));
+            put("draws", Integer.toString(draws));
+            put("winrate", Integer.toString(finalWinRate));
+            put("gamesPlayed", Integer.toString(gamesPlayed));
+            put("betRate", Integer.toString(finalBetRate));
+            put("betsTotal", Integer.toString(betsTotal));
+            put("betsWon", Integer.toString(betsWon));
+            put("betsLost", Integer.toString(betsLost));
+        }};
+
+        List<String> list = new ArrayList<>(LangManager.getListPrefixed("stats.list", placeholders));
 
         boolean centered = LangManager.getBool("stats.centered");
 
@@ -107,47 +134,38 @@ public class RootCommand {
         for (String s : temp) ConnectFour.getTexter().response(sender, s, true, false);
     }
 
-    @Command("connectfour|cf invite [player]")
+    @Command("connectfour|cf|c4 invite [player] [bet]")
     @CommandDescription("Connect Four invite player command")
-    public void invite(CommandSender sender, @Argument("player") Player player) {
-        if (!(sender instanceof Player)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("only_player"), true, false);
-            return;
-        } else if (player == null) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/cf invite <player>")), true, false);
-            return;
-        } else if (player.equals(sender)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("invite_self_err"), true, false);
-            return;
-        } else if (ConnectFour.getInviteManager().inviter((Player) sender)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("someone_already_invited"), true, false);
-            return;
-        } else if (ConnectFour.getGameManager().isPlaying(player)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("player_already_playing"), true, false);
-            return;
-        } else if (ConnectFour.getGameManager().isPlaying((Player) sender)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("self_already_playing"), true, false);
-            return;
-        }
-
-        if (ConnectFour.getInviteManager().isInvitedBy(player, (Player) sender)) {
-            ConnectFour.getInviteManager().accept((Player) sender, player);
-        } else if (ConnectFour.getInviteManager().isInvitedBy((Player) sender, player)) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("player_already_invited"), true, false);
-        } else {
-            ConnectFour.getInviteManager().invite((Player) sender, player);
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("invite_sent", mapOf("player", player.getName())), true, false);
-        }
+    public void invite(
+            CommandSender sender,
+            @Argument("player") Player player,
+            @Argument("bet") @Range(min = "0") Integer bet
+    ) {
+        inviteProcess(sender, player, bet);
     }
 
-    @Command("connectfour|cf accept [player]")
+    @Command("connectfour|cf|c4 bet [player] [bet]")
+    @CommandDescription("Connect Four bet player command")
+    public void bet(
+            CommandSender sender,
+            @Argument("player") Player player,
+            @Argument("bet") @Range(min = "0") Integer bet
+    ) {
+        if (bet == null) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/c4 bet <player> <amount>")), true, false);
+            return;
+        }
+        inviteProcess(sender, player, bet);
+    }
+
+    @Command("connectfour|cf|c4 accept [player]")
     @CommandDescription("Connect Four accept invite command")
     public void accept(CommandSender sender, @Argument("player") Player player) {
         if (!(sender instanceof Player)) {
             ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("only_player"), true, false);
             return;
         } else if (player == null) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/cf accept <player>")), true, false);
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/c4 accept <player>")), true, false);
             return;
         } else if (player.getUniqueId().equals(((Player) sender).getUniqueId())) {
             ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("self_accept_err"), true, false);
@@ -163,14 +181,14 @@ public class RootCommand {
         ConnectFour.getInviteManager().accept((Player) sender, player);
     }
 
-    @Command("connectfour|cf reject [player]")
+    @Command("connectfour|cf|c4 reject [player]")
     @CommandDescription("Connect Four reject invite command")
     public void reject(CommandSender sender, @Argument("player") Player player) {
         if (!(sender instanceof Player)) {
             ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("only_player"), true, false);
             return;
         } else if (player == null) {
-            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/cf reject <player>")), true, false);
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/c4 reject <player>")), true, false);
             return;
         } else if (player.getUniqueId().equals(((Player) sender).getUniqueId())) {
             ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("self_reject_err"), true, false);
@@ -189,7 +207,7 @@ public class RootCommand {
         ConnectFour.getInviteManager().reject((Player) sender, player);
     }
 
-    @Command("connectfour|cf leaderboard")
+    @Command("connectfour|cf|c4 leaderboard")
     @CommandDescription("Connect Four leaderboard command")
     public void leaderBoard(CommandSender sender) {
         // Assuming this returns a list of objects with getName(), getWins(), getGamesPlayed()
@@ -241,7 +259,7 @@ public class RootCommand {
         if (footer != null) ConnectFour.getTexter().response(sender, footer, true, false);
     }
 
-    @Command("connectfour|cf reload")
+    @Command("connectfour|cf|c4 reload")
     @CommandDescription("Connect Four reload config command")
     @Permission(value = {"connectfour.*", "connectfour.reload"}, mode = Permission.Mode.ANY_OF)
     public void reload(CommandSender sender) {
@@ -292,5 +310,66 @@ public class RootCommand {
     private static String cap(String s) {
         if (s == null || s.isEmpty()) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    private void inviteProcess(
+            CommandSender sender,
+            Player player,
+            Integer bet
+    ) {
+        if (!(sender instanceof Player p0)) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("only_player"), true, false);
+            return;
+        } else if (player == null) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("wrong_usage", mapOf("usage", "/c4 invite <player>")), true, false);
+            return;
+        } else if (player.equals(sender)) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("invite_self_err"), true, false);
+            return;
+        } else if (ConnectFour.getInviteManager().inviter(p0)) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("someone_already_invited"), true, false);
+            return;
+        } else if (ConnectFour.getGameManager().isPlaying(player)) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("player_already_playing"), true, false);
+            return;
+        } else if (ConnectFour.getGameManager().isPlaying(p0)) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("self_already_playing"), true, false);
+            return;
+        }
+
+        if (bet != null) {
+            if (!ConnectFour.getConfigModel().isHookVault()) {
+                ConnectFour.getTexter().response(sender, "&cBetting is disabled!", true, true);
+                return;
+            }
+            if (ConnectFour.getInstance().getEconomy().getBalance(p0) < bet) {
+                ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("not_enough_money"), true, false);
+                return;
+            } else if (ConnectFour.getInstance().getEconomy().getBalance(player) < bet) {
+                ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("invite_accept_no_money_target", mapOf("player", player.getName())), true, false);
+                return;
+            }
+
+            int minBet = ConnectFour.getInstance().getConfig().getInt("bets.min", 0);
+            if (bet < minBet) {
+                ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("min_bet", mapOf("min", Integer.toString(minBet))), true, false);
+                return;
+            }
+
+            int maxBet = ConnectFour.getInstance().getConfig().getInt("bets.max", 10000);
+            if (bet > maxBet) {
+                ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("max_bet", mapOf("max", Integer.toString(maxBet))), true, false);
+                return;
+            }
+        }
+
+        if (ConnectFour.getInviteManager().isInvitedBy(player, p0)) {
+            ConnectFour.getInviteManager().accept(p0, player);
+        } else if (ConnectFour.getInviteManager().isInvitedBy(p0, player)) {
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("player_already_invited"), true, false);
+        } else {
+            ConnectFour.getInviteManager().invite(p0, player, bet);
+            ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("invite_sent", mapOf("player", player.getName())), true, false);
+        }
     }
 }
