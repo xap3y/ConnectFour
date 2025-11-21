@@ -1,7 +1,9 @@
 package eu.xap3y.connectfour.command;
 
 import eu.xap3y.connectfour.ConnectFour;
+import eu.xap3y.connectfour.adapter.PaperAdapter;
 import eu.xap3y.connectfour.api.model.PlayerStatModel;
+import eu.xap3y.connectfour.api.model.StaticItems;
 import eu.xap3y.connectfour.manager.LangManager;
 import eu.xap3y.connectfour.service.Texter;
 import org.bukkit.OfflinePlayer;
@@ -266,6 +268,11 @@ public class RootCommand {
         ConnectFour.getConfigLoader().reload();
         LangManager.reload();
         ConnectFour.getTexter().response(sender, LangManager.getStringPrefixed("config_reload"), true, false);
+
+        if (ConnectFour.isPaper) {
+            StaticItems.redPane = PaperAdapter.setName(StaticItems.redPane, LangManager.getString("gui.red") != null ? LangManager.getString("gui.red") : "&cRed");
+            StaticItems.yellowPane = PaperAdapter.setName(StaticItems.yellowPane, LangManager.getString("gui.yellow") != null ? LangManager.getString("gui.yellow") : "&eYellow");
+        }
     }
 
     private static Map<String, String> mapOf(String k1, String v1) {
@@ -342,7 +349,7 @@ public class RootCommand {
         }
 
         if (bet != null) {
-            if (!ConnectFour.getConfigModel().isHookVault()) {
+            if (!ConnectFour.getConfigModel().isHookVault() || ConnectFour.getInstance().getEconomy() == null) {
                 ConnectFour.getTexter().response(sender, "&cBetting is disabled!", true, true);
                 return;
             }

@@ -40,7 +40,7 @@ public final class ConnectFour extends JavaPlugin {
     public static final String VERSION_UPSTREAM_URL = "https://raw.githubusercontent.com/xap3y/ConnectFour/main/VER";
     public static int totalGames = 0;
     public static int totalDraws = 0;
-    public static final String VERSION = "1.4.1";
+    public static final String VERSION = "1.5.0";
     public static String language = "en";
 
     @Getter
@@ -61,6 +61,9 @@ public final class ConnectFour extends JavaPlugin {
 
     @Getter
     private static ConfigLoader configLoader;
+
+    @Getter
+    private static boolean isFolia = false;
 
     @Getter
     private final Set<Player> openedGuis = Collections.synchronizedSet(new HashSet<>());
@@ -96,8 +99,11 @@ public final class ConnectFour extends JavaPlugin {
 
         if (configModel.isUpdates()) {
             RequestHttp.isNewest().whenComplete((result, ex) -> {
-                if (ex != null || result.latestVersion() == null) {
+                if ((ex != null || result.latestVersion() == null) && !result.isUpToDate()) {
                     texter.console("Could not check for updates!");
+                    return;
+                } else if (result.isUpToDate()){
+                    texter.console("&aYou are running the latest version of Connect Four! &7(&2" + VERSION + "&7)");
                     return;
                 }
                 if (!result.isUpToDate()) {
@@ -129,9 +135,20 @@ public final class ConnectFour extends JavaPlugin {
             }
         };
 
-        economySetup.runTaskTimerAsynchronously(this, 60L, 20L * 60L * 5L);
+        try {
+            economySetup.runTaskTimerAsynchronously(this, 60L, 20L * 60L * 5L);
+        } catch (UnsupportedOperationException ex) {
+            // folia
+            //economySetup.runTaskTimer(this, 60L, 20L * 60L * 5L);
+        }
+
 
         Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
+
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+        } catch (ClassNotFoundException ignored) {}
     }
 
     @Override

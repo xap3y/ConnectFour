@@ -8,7 +8,6 @@ import eu.xap3y.connectfour.api.model.StaticItems;
 import eu.xap3y.connectfour.service.Texter;
 import eu.xap3y.connectfour.util.PlayerExtensions;
 import eu.xap3y.xagui.GuiMenu;
-import eu.xap3y.xagui.interfaces.GuiMenuInterface;
 import eu.xap3y.xagui.models.GuiButton;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -21,6 +20,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public class GameManager {
 
@@ -92,9 +92,16 @@ public class GameManager {
         if (opponent != null) {
 
             Player finalOpponent = opponent;
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                finalOpponent.closeInventory();
-            });
+            if (ConnectFour.isFolia()) {
+                finalOpponent.getScheduler().run(plugin, (e) -> {
+                    finalOpponent.closeInventory();
+                }, null);
+            } else {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    finalOpponent.closeInventory();
+                });
+            }
+
             if (refundBoth) {
                 if (bets.containsKey(finalOpponent.getUniqueId())) {
                     Integer bet = bets.get(finalOpponent.getUniqueId());
@@ -170,7 +177,7 @@ public class GameManager {
             skullPlayer.setItemMeta(skullPlayerMeta);
         }
 
-        if (!ConnectFour.useOld) {
+        if (!ConnectFour.useOld && ConnectFour.isPaper) {
             skullPlayer = getTexturedSkull(player.getName(), player.getUniqueId());
         }
 
@@ -251,8 +258,13 @@ public class GameManager {
                 if (p.isOnline()) {
                     exitingPlayers.add(p.getUniqueId());
                     ConnectFour.getTexter().response(p, LangManager.getStringPrefixed("esp_confirm"), true, false);
-                    Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> exitingPlayers.remove(p.getUniqueId()), 30L);
-                    Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> gui.open(p), 5L);
+                    if (ConnectFour.isFolia()) {
+                        plugin.getServer().getAsyncScheduler().runDelayed(plugin, (e) -> exitingPlayers.remove(p.getUniqueId()), 1500L, TimeUnit.MILLISECONDS);
+                        plugin.getServer().getAsyncScheduler().runDelayed(plugin, (e) -> gui.open(p), 250L, TimeUnit.MILLISECONDS);
+                    } else {
+                        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> exitingPlayers.remove(p.getUniqueId()), 30L);
+                        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> gui.open(p), 5L);
+                    }
                     return;
                 }
             } else if (ConnectFour.getConfigModel().isDoubleEscape() && exitingPlayers.contains(event.getPlayer().getUniqueId())) {
@@ -405,7 +417,7 @@ public class GameManager {
                         int newSlot = r * 9 + rc.col;
                         int oldSlot = (r - 1) * 9 + rc.col;
                         if (oldSlot > 0) gui.updateSlot(oldSlot, Material.AIR);
-                        else gui.updateSlot(0 + rc.col, Material.AIR);
+                        else gui.updateSlot(rc.col, Material.AIR);
                         gui.setSlot(newSlot, button);
                         try { Thread.sleep(ConnectFour.getConfigModel().getTokenFallSpeed()); } catch (InterruptedException ignored) {}
                     }
@@ -613,7 +625,7 @@ public class GameManager {
     }
 
     private void switchMove(GuiMenu gui, int color, String playerName) {
-        GuiButton item = (color == 0) ? StaticItems.redPaneGlow : StaticItems.yellowPaneGlow;
+        GuiButton item = (color == 0) ? StaticItems.redPaneGlow.setName(LangManager.getString("gui.red") != null ? LangManager.getString("gui.red") : "&cRed") : StaticItems.yellowPaneGlow.setName(LangManager.getString("gui.yellow") != null ? LangManager.getString("gui.yellow") : "&eYellow");
         List<String> list = LangManager.getListPrefixed("gui.border_item_lore", mapOf("player", playerName));
         GuiButton button = item.setLoreList(list);
         for (int slot : BORDER_SWITCH_SLOTS) {

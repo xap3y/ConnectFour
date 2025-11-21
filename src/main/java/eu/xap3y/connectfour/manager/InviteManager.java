@@ -2,11 +2,10 @@ package eu.xap3y.connectfour.manager;
 
 import com.cryptomorin.xseries.XSound;
 import eu.xap3y.connectfour.ConnectFour;
-import eu.xap3y.connectfour.api.model.PlayerStatModel;
+import eu.xap3y.connectfour.adapter.PaperAdapter;
 import eu.xap3y.connectfour.service.Texter;
 import eu.xap3y.connectfour.util.PlayerExtensions;
 import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class InviteManager {
 
@@ -54,12 +54,23 @@ public class InviteManager {
     }
 
     public void invite(Player player, Player target, Integer bet) {
-        int taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
-            synchronized (inviteMapper) {
-                inviteMapper.removeIf(i -> i.invited.getUniqueId().equals(target.getUniqueId()) && i.inviter.getUniqueId().equals(player.getUniqueId()));
-            }
-            ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("invite_expired"), true, false);
-        }, 20L * ConnectFour.getConfigModel().getInviteTimeout()).getTaskId();
+        int taskId;
+        try {
+            taskId = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+                synchronized (inviteMapper) {
+                    inviteMapper.removeIf(i -> i.invited.getUniqueId().equals(target.getUniqueId()) && i.inviter.getUniqueId().equals(player.getUniqueId()));
+                }
+                ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("invite_expired"), true, false);
+            }, 20L * ConnectFour.getConfigModel().getInviteTimeout()).getTaskId();
+        } catch (UnsupportedOperationException ex) {
+            ConnectFour.getInstance().getServer().getAsyncScheduler().runDelayed(plugin, (e) -> {
+                synchronized (inviteMapper) {
+                    inviteMapper.removeIf(i -> i.invited.getUniqueId().equals(target.getUniqueId()) && i.inviter.getUniqueId().equals(player.getUniqueId()));
+                }
+                ConnectFour.getTexter().response(player, LangManager.getStringPrefixed("invite_expired"), true, false);
+            }, ConnectFour.getConfigModel().getInviteTimeout(), TimeUnit.SECONDS);
+            taskId = -1;
+        }
 
         synchronized (inviteMapper) {
             inviteMapper.add(new Invite(player, target, taskId, bet));
@@ -102,31 +113,17 @@ public class InviteManager {
                     acceptHoverText = acceptHoverText + "\n" + acceptExtraLore.replaceAll("&", "§");
                 }
 
-                net.kyori.adventure.text.TextComponent tcomp = Component.text(spacesText)
-                        .append(
-                                Component.text(Texter.colored(button1.replaceAll("&", "§")))
-                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text(acceptHoverText)))
-                                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.callback((ctx) -> {
-                                            ConnectFour.getInviteManager().accept(target, player);
-                                        }))
-                        )
-                        .append(Component.text("    "))
-                        .append(
-                                Component.text(Texter.colored(button2.replaceAll("&", "§")))
-                                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text(Texter.colored(button2Hover.replaceAll("&", "§")))))
-                                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.callback((ctx) -> {
-                                            if (!ConnectFour.getInviteManager().isInvitedBy(player, target)) {
-                                                ConnectFour.getTexter().response(target, LangManager.getStringPrefixed("no_invites_from_player"), true, false);
-                                                return;
-                                            }
-                                            ConnectFour.getInviteManager().reject(target, player);
-                                        }))
-                        )
-                        .append(Component.text(additionalInfo.replaceAll("&", "§")));
-                if (lineHeader != null) target.sendMessage(Texter.colored(lineHeader));
-                target.sendMessage(Texter.colored(Texter.centered(line2)));
-                target.sendMessage(tcomp);
-                if (lineFooter != null) target.sendMessage(Texter.colored(lineFooter));
+                PaperAdapter.sendInviteText(target, player,
+                        lineHeader != null ? Texter.colored(lineHeader.replaceAll("&", "§")) : null,
+                        Texter.colored(Texter.centered(line2).replaceAll("&", "§")),
+                        lineFooter != null ? Texter.colored(lineFooter.replaceAll("&", "§")) : null,
+                        Texter.colored(button1.replaceAll("&", "§")),
+                        acceptHoverText,
+                        Texter.colored(button2.replaceAll("&", "§")),
+                        Texter.colored(button2Hover.replaceAll("&", "§")),
+                        Texter.colored(additionalInfo.replaceAll("&", "§")),
+                        spacesText.replaceAll("&", "§")
+                );
             } catch (Exception e) {
                 ConnectFour.getTexter().response(target, LangManager.getStringPrefixed("invite_err"), true, false);
             }

@@ -1,5 +1,7 @@
 package eu.xap3y.connectfour.service;
 
+import eu.xap3y.connectfour.ConnectFour;
+import eu.xap3y.connectfour.adapter.PaperAdapter;
 import eu.xap3y.connectfour.api.dto.TextModifierDto;
 import eu.xap3y.connectfour.api.dto.TexterObjDto;
 import eu.xap3y.connectfour.api.enums.DefaultFontInfo;
@@ -29,13 +31,23 @@ public class Texter {
     public void response(CommandSender p0, String text, TextModifierDto modifiers) {
         String textToSend = modifiers.colored() ? colored(text) : text;
         String prefix = modifiers.withPrefix() ? colored(data.getPrefix()) : "";
-        p0.sendMessage(prefix + textToSend);
+        String finalText = prefix + textToSend;
+        if (ConnectFour.isPaper) {
+            PaperAdapter.sendToPlayer(p0, finalText);
+        } else {
+            p0.sendMessage(finalText);
+        }
     }
 
     public void response(CommandSender p0, String text, boolean colored, boolean wPrefix) {
         String textToSend = colored ? colored(text) : text;
         String prefix = wPrefix ? colored(data.getPrefix()) : "";
-        p0.sendMessage(prefix + textToSend);
+        String finalText = prefix + textToSend;
+        if (ConnectFour.isPaper) {
+            PaperAdapter.sendToPlayer(p0, finalText);
+        } else {
+            p0.sendMessage(finalText);
+        }
     }
 
     public void response(CommandSender p0, String text) {

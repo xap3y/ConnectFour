@@ -1,8 +1,8 @@
 name: ConnectFour
-version: '1.4.1'
+version: '1.5'
 main: eu.xap3y.connectfour.ConnectFour
 api-version: '1.13'
-folia-supported: true
+folia-supported: false
 authors: [XAP3Y]
 website: https://xap3y.fun
 
