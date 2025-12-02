@@ -99,7 +99,7 @@ public class InviteManager {
         textButtons = textButtons.replace("{button1}", button1).replace("{button2}", button2);
         String recreateMid = Texter.centered(textButtons);
 
-        int spaces = recreateMid.indexOf('&');
+        int spaces = recreateMid.indexOf(button1.charAt(0));
         if (spaces < 0) spaces = 0;
         String spacesText = recreateMid.substring(0, spaces);
 

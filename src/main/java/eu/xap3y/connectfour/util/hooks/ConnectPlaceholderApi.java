@@ -2,12 +2,14 @@ package eu.xap3y.connectfour.util.hooks;
 
 import eu.xap3y.connectfour.ConnectFour;
 import eu.xap3y.connectfour.api.model.PlayerStatModel;
+import eu.xap3y.connectfour.manager.LangManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class ConnectPlaceholderApi extends PlaceholderExpansion {
 
@@ -23,13 +25,87 @@ public class ConnectPlaceholderApi extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getVersion() {
-        return "1.5.0";
+        return "1.5.1";
     }
 
     @Override
     public String onRequest(OfflinePlayer player, @NotNull String params) {
         String key = String.valueOf(player != null ? player.getUniqueId() : null);
         Map<String, PlayerStatModel> data = ConnectFour.getConfigLoader().data;
+
+        if (params.toLowerCase(Locale.ROOT).startsWith("leaderboard_") && params.toLowerCase(Locale.ROOT).endsWith("_wins")) {
+            // leaderboard_<position>_wins
+            String posStr = params.substring("leaderboard_".length(), params.length() - "_wins".length());
+            int position;
+            try {
+                position = Integer.parseInt(posStr);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+            java.util.List<PlayerStatModel> list = ConnectFour.getConfigLoader().getLeaderboard();
+            if (position < 1 || position > list.size()) {
+                return "0";
+            }
+
+            PlayerStatModel stat = list.get(position - 1);
+
+            return Integer.toString(stat.getWins());
+        } else if (params.toLowerCase(Locale.ROOT).startsWith("leaderboard_") && params.toLowerCase(Locale.ROOT).endsWith("played")) {
+            // leaderboard_<position>_played
+            String posStr = params.substring("leaderboard_".length(), params.length() - "played".length());
+            int position;
+            try {
+                position = Integer.parseInt(posStr);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+            java.util.List<PlayerStatModel> list = ConnectFour.getConfigLoader().getLeaderboard();
+            if (position < 1 || position > list.size()) {
+                return "0";
+            }
+
+            PlayerStatModel stat = list.get(position - 1);
+
+            return Integer.toString(stat.getGamesPlayed());
+        } else if (params.toLowerCase(Locale.ROOT).startsWith("leaderboard_") && params.toLowerCase(Locale.ROOT).endsWith("lost")) {
+            // leaderboard_<position>_lost
+            String posStr = params.substring("leaderboard_".length(), params.length() - "lost".length());
+            int position;
+            try {
+                position = Integer.parseInt(posStr);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+            java.util.List<PlayerStatModel> list = ConnectFour.getConfigLoader().getLeaderboard();
+            if (position < 1 || position > list.size()) {
+                return "0";
+            }
+
+            PlayerStatModel stat = list.get(position - 1);
+
+            return Integer.toString(stat.getLosses());
+        } else if (params.toLowerCase(Locale.ROOT).startsWith("leaderboard_")) {
+            // leaderboard_<position>
+            String posStr = params.substring("leaderboard_".length());
+            int position;
+            try {
+                position = Integer.parseInt(posStr);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+
+            java.util.List<PlayerStatModel> list = ConnectFour.getConfigLoader().getLeaderboard();
+            if (position < 1 || position > list.size()) {
+                return Objects.requireNonNullElse(LangManager.getString("stats.no-entry"), "&cN/A");
+            }
+
+            PlayerStatModel stat = list.get(position - 1);
+
+            return stat.getName();
+        }
 
         switch (params.toLowerCase(Locale.ROOT)) {
             case "version":

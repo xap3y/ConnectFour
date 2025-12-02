@@ -133,6 +133,8 @@ stats:
 
     text: "&e&l{player} &fstatistics"
 
+    no-entry: "&cN/A"
+
     list:
         - " &e&l➢ &7Wins: &9{wins} &e&l⮘"
         - " &e&l➢ &7Losses: &9{losses} &e&l⮘"

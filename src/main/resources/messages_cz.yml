@@ -135,6 +135,8 @@ stats:
 
     text: "&fStatistiky hráče &e&l{player}"
 
+    no-entry: "&cN/A"
+
     list:
         - " &e&l➢ &7Výher: &9{wins} &e&l⮘"
         - " &e&l➢ &7Proher: &9{losses} &e&l⮘"

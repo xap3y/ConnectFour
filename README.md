@@ -54,7 +54,10 @@ Supports PlaceholderAPI and miniPlaceholers
 `%connectfour_losses%` \
 `%connectfour_draws%` \
 `%connectfour_played%` \
-`%connectfour_winrate%`
+`%connectfour_winrate%` \
+`%connectfour_leaderboard_<position>%` - Returns player name at given position \
+`%connectfour_leaderboard_<position>_wins%` - Returns wins at given position \
+`%connectfour_leaderboard_<position>_played%` - Returns played games at given position
 
 ## Configuration
 
