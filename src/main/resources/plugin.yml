@@ -1,5 +1,5 @@
 name: ConnectFour
-version: '1.5.1'
+version: '1.5.2'
 main: eu.xap3y.connectfour.ConnectFour
 api-version: '1.13'
 folia-supported: false

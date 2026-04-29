@@ -126,9 +126,19 @@ public class GameManager {
                     }
                     bets.remove(finalOpponent.getUniqueId());
                 }
+
+                if (ConnectFour.getConfigModel().isWinRewardsEnable()) {
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        List<String> cmds = ConnectFour.getConfigModel().getWinRewards();
+                        if (cmds != null) {
+                            for (String command : cmds) {
+                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", finalOpponent.getName()));
+                            }
+                        }
+                    });
+                }
             }
         }
-
     }
 
     public void startGame(Player player, Player opponent, Integer bet) {
