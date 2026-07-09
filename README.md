@@ -2,8 +2,8 @@
 
 # MC Connect4 GUI Minigame
 
-Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.space/). \
-Supports any bukkit platform from 1.8 up to 1.21.10
+Minecraft GUI minigame created with my menu API [XaGui](https://xagui.xap3y.eu/). \
+Supports any bukkit platform from 1.8 up to 26.2
 
 
 [![bStats Servers](https://img.shields.io/bstats/servers/22557)](https://bstats.org/plugin/bukkit/ConnectFour/22557)
@@ -13,15 +13,15 @@ Supports any bukkit platform from 1.8 up to 1.21.10
 
 ## Showcase
 
-<img src="https://r2.xap3y.space/media/CCDSXSKR">
+<img src="https://r2.xap3y.eu/media/CCDSXSKR">
 
 </div>
 
 ## Support
-- Java version from 8 up to 22
-- 1.8.8-1.21.10 Spigot
+- Java version from 17
+- 1.8.8-26.2 Spigot
 - 1.8.8-1.21 CraftBukkit (without clickable chat messages)
-- 1.8.8-1.21.10 PaperSpigot
+- 1.8.8-26.2 PaperSpigot
 - 1.16.5-1.21 Purpur
 - Folia
 
